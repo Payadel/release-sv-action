@@ -1,0 +1,34 @@
+name: 'build-test'
+on: # rebuild any PRs and main branch changes
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build: # make sure build/ci work properly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: |
+          npm install
+
+      - name: Run All
+        run: |
+          export NODE_OPTIONS=--openssl-legacy-provider
+          npm run all
+
+  test: # make sure the action works on a clean machine without building
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Action
+        uses: ./
+        id: release
+        with:
+          who-to-greet: World
+          milliseconds: 1000
+
+      - name: Get the output time
+        run: echo "The time was ${{ steps.hello.outputs.time }}"
