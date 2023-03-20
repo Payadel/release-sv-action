@@ -39,14 +39,14 @@ jobs:
       - uses: dessant/lock-threads@v4.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-lock-inactive-days: ${{ inputs.issue_lock_inactive_days }}
+          issue-inactive-days: ${{ inputs.issue_lock_inactive_days }}
           issue-lock-reason: ${{ inputs.issue_lock_reason }}
           issue-comment: >
             Issue closed and locked due to lack of activity.
 
             If you encounter this same issue, please open a new issue and refer
             to this closed one.
-          pr-lock-inactive-days: ${{ inputs.pr_lock_inactive_days }}
+          pr-inactive-days: ${{ inputs.pr_lock_inactive_days }}
           pr-lock-reason: ${{ inputs.pr_lock_reason }}
           pr-comment: >
             Pull Request closed and locked due to lack of activity.
