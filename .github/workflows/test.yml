@@ -1,0 +1,69 @@
+name: 'build-test'
+on: # rebuild any PRs and main branch changes
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build: # make sure build/ci work properly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: |
+          npm install
+
+      - name: Run All
+        run: |
+          export NODE_OPTIONS=--openssl-legacy-provider
+          npm run all
+
+  test: # make sure the action works on a clean machine without building
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run action without inputs
+        uses: ./
+        id: release_without_inputs
+        with:
+          is_test_mode: true
+
+      - name: Validate default values
+        run: |
+          if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
+          chmod +x assert
+          ./assert ${{ steps.hello.release_without_inputs.git-email }} github-action@github.com
+          ./assert ${{ steps.hello.release_without_inputs.git-user-name }} 'Github Action'
+          ./assert ${{ steps.hello.release_without_inputs.skip-changelog }} 'true'
+          ./assert ${{ steps.hello.release_without_inputs.release_file_name }} 'release'
+          ./assert ${{ steps.hello.release_without_inputs.release_directory }} '.'
+          ./assert ${{ steps.hello.release_without_inputs.create_pr_for_branch }} ''
+          ./assert ${{ steps.hello.release_without_inputs.releaseCommand }} 'standard-version --skip.changelog'
+          
+
+      - name: Run action with inputs
+        uses: ./
+        id: release_with_inputs
+        with:
+          is_test_mode: true
+          git-email: fake@fake.com
+          git-user-name: "fake name"
+          version: 100.100.100
+          skip-changelog: false
+          release_directory: .
+          release_file_name: fake-name
+          create_pr_for_branch: branch-name
+
+      - name: Validate default values
+        run: |
+          if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
+          chmod +x assert
+          ./assert ${{ steps.hello.release_with_inputs.git-email }} fake@fake.com
+          ./assert ${{ steps.hello.release_with_inputs.git-user-name }} "fake name"
+          ./assert ${{ steps.hello.release_with_inputs.skip-changelog }} false
+          ./assert ${{ steps.hello.release_with_inputs.release_directory }} .
+          ./assert ${{ steps.hello.release_with_inputs.release_file_name }} fake-name
+          ./assert ${{ steps.hello.release_with_inputs.create_pr_for_branch }} branch-name
+          ./assert ${{ steps.hello.release_with_inputs.version }} 100.100.100
+          ./assert ${{ steps.hello.release_with_inputs.releaseCommand }} 'standard-version --release-as 100.100.100'

@@ -1,0 +1,42 @@
+name: 'Create Release'
+description: 'Create release base standard-version package'
+author: 'Payadel'
+
+# Here we define the inputs, which can be set
+# from the workflow file and are consumed in our code
+inputs:
+  git-email:
+    description: 'git user.email config for commit. Default: github-action@github.com'
+    default: 'github-action@github.com'
+    required: false
+  git-user-name:
+    description: 'git user.name config for commit. Default: Github Action'
+    default: 'Github Action'
+    required: false
+  version:
+    description: 'Release version. Leave empty for auto generate. Default: ""'
+    default: ''
+    required: false
+  skip-changelog:
+    description: 'Skip generate changelog file or not? Default: true'
+    default: "true"
+    required: false
+  release_file_name:
+    description: 'Release file name. Default: release'
+    default: "release"
+    required: false
+  release_directory:
+    description: 'Where are the release files?. Default: .'
+    default: '.'
+    required: false
+  create_pr_for_branch:
+    description: 'Create pull request for any branch? Leave empty for skip. Default: ""'
+    required: false
+    default: ''
+outputs:
+  version:
+    description: 'Release version'
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
