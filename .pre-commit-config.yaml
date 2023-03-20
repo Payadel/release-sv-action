@@ -1,0 +1,12 @@
+repos:
+  - repo: https://github.com/Payadel/pre-commit-hooks
+    rev: v0.0.3
+    hooks:
+      - id: run-scripts
+        name: Run All Before Push
+        args: [ "-f", ".git-hooks/run-all-before-push.sh" ]
+        stages: [ push ]
+      - id: run-scripts
+        name: Before Commit
+        args: [ "-f", ".git-hooks/before-commit.sh" ]
+        stages: [ commit-msg ]
