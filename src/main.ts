@@ -132,9 +132,9 @@ async function createPr(
   }
 
   core.info("Create pull request...");
-  return getCurrentBranchName().then(currentBranchName =>
+  return getCurrentBranchName().then(async currentBranchName =>
     exec.getExecOutput(
-      `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "$(cat CHANGELOG.md)"`
+      `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`
     )
   );
 }
