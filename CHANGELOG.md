@@ -1,7 +1,19 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [0.0.3](https://github.com/Payadel/release-sv-action/compare/v0.0.2...v0.0.3) (2023-03-21)
+
+
+### Development: CI/CD, Build, etc
+
+* **release:** fix bugs ([897feb3](https://github.com/Payadel/release-sv-action/commit/897feb33a69bd53051e33d9ec06f46dce32bd971))
+* **release:** use Payadel/release-sv-action@v0.02 for release ([87b84bf](https://github.com/Payadel/release-sv-action/commit/87b84bf74b39f27fa257f778b820b6f1ea279783))
+
+
+### Fixes
+
+* **action:** add is_test_mode field to action.yml ([cb70cc6](https://github.com/Payadel/release-sv-action/commit/cb70cc69a8db408e19105ad1095beed013a45293))
 
 ### [0.0.2](https://github.com/Payadel/release-sv-action/compare/v0.0.1...v0.0.2) (2023-03-21)
 
