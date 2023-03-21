@@ -33,15 +33,16 @@ jobs:
 
       - name: Validate default values
         run: |
+          cd .github/workflows
           if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
-          chmod +x assert
-          ./assert ${{ steps.hello.release_without_inputs.git-email }} github-action@github.com
-          ./assert ${{ steps.hello.release_without_inputs.git-user-name }} 'Github Action'
-          ./assert ${{ steps.hello.release_without_inputs.skip-changelog }} 'true'
-          ./assert ${{ steps.hello.release_without_inputs.release_file_name }} 'release'
-          ./assert ${{ steps.hello.release_without_inputs.release_directory }} '.'
-          ./assert ${{ steps.hello.release_without_inputs.create_pr_for_branch }} ''
-          ./assert ${{ steps.hello.release_without_inputs.releaseCommand }} 'standard-version --skip.changelog'
+          chmod +x assert.sh
+          ./assert.sh "${{ steps.release_without_inputs.outputs.git-email }}" "github-action@github.com" "git-email"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.git-user-name }}" "Github Action" "git-user-name"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.skip-changelog }}" "true" "skip-changelog"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.release_file_name }}" "release" "release_file_name"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.release_directory }}" "." "release_directory"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.create_pr_for_branch }}" "" "create_pr_for_branch"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseCommand }}" "standard-version --skip.changelog" "releaseCommand"
           
 
       - name: Run action with inputs
@@ -57,15 +58,16 @@ jobs:
           release_file_name: fake-name
           create_pr_for_branch: branch-name
 
-      - name: Validate default values
+      - name: Validate with input
         run: |
+          cd .github/workflows
           if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
-          chmod +x assert
-          ./assert ${{ steps.hello.release_with_inputs.git-email }} fake@fake.com
-          ./assert ${{ steps.hello.release_with_inputs.git-user-name }} "fake name"
-          ./assert ${{ steps.hello.release_with_inputs.skip-changelog }} false
-          ./assert ${{ steps.hello.release_with_inputs.release_directory }} .
-          ./assert ${{ steps.hello.release_with_inputs.release_file_name }} fake-name
-          ./assert ${{ steps.hello.release_with_inputs.create_pr_for_branch }} branch-name
-          ./assert ${{ steps.hello.release_with_inputs.version }} 100.100.100
-          ./assert ${{ steps.hello.release_with_inputs.releaseCommand }} 'standard-version --release-as 100.100.100'
+          chmod +x assert.sh
+          ./assert.sh "${{ steps.release_with_inputs.outputs.git-email }}" "fake@fake.com" "git-email"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.git-user-name }}" "fake name" "git-user-name"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.skip-changelog }}" "false" "skip-changelog"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.release_directory }}" "." "release_directory"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.release_file_name }}" "fake-name" "release_file_name"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.create_pr_for_branch }}" "branch-name" "create_pr_for_branch"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.version }}" "100.100.100" "version"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.releaseCommand }}" "standard-version --release-as 100.100.100" "releaseCommand"
