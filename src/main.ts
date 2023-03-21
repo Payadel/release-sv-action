@@ -107,9 +107,13 @@ async function createReleaseFile(
   filename: string
 ): Promise<exec.ExecOutput> {
   core.info("Create release file...");
-  return exec.getExecOutput(
-    `(cd ${directory} && zip -r "$(git rev-parse --show-toplevel)/${filename}.zip" .)`
+  return execBashCommand(
+    `(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`
   );
+}
+
+async function execBashCommand(command: string): Promise<exec.ExecOutput> {
+  return exec.getExecOutput(`/bin/bash -c "${command}"`);
 }
 
 async function createPr(
