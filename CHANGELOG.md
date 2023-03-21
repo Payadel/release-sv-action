@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.2](https://github.com/Payadel/release-sv-action/compare/v0.0.1...v0.0.2) (2023-03-21)
+
+
+### Development: CI/CD, Build, etc
+
+* add color to run-all-before-push.sh ([3a5a755](https://github.com/Payadel/release-sv-action/commit/3a5a755971cdab884f21be08485c7dc203d672a9))
+* improve messages in run-all-before-push.sh ([89d34c1](https://github.com/Payadel/release-sv-action/commit/89d34c17c69798643d7c55e58a516d1964a4363f))
+* update actions ([8657ad9](https://github.com/Payadel/release-sv-action/commit/8657ad9da64d6948114839aa5dab31f0aa97176d))
+* update run-all-before-push.sh ([3618b6f](https://github.com/Payadel/release-sv-action/commit/3618b6f113c50ef3bb79b26bef58b73a8d67fdee))
+
+
+### Tests
+
+* fix build-test.yml and improve assert.sh ([157281b](https://github.com/Payadel/release-sv-action/commit/157281b1b74ea31b1b5510aa97687c2051fdc560))
+
+
+### Fixes
+
+* fix `createReleaseFile` bug ([d4d6105](https://github.com/Payadel/release-sv-action/commit/d4d61050efbf0bddc23aa02b5475b1c10c3152c1))
+* fix test mode bug ([5c39d8d](https://github.com/Payadel/release-sv-action/commit/5c39d8ddfb5abe931d4a39383f97c60f47e43569))
+
 ### 0.0.1 (2023-03-20)
 
 
