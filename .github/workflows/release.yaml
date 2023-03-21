@@ -57,6 +57,8 @@ jobs:
           release_directory: ${{ inputs.release_directory }}
           release_file_name: ${{ inputs.release_file_name }}
           create_pr_for_branch: ${{ inputs.create_pr_for_branch }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GitHub Release
         uses: ncipollo/release-action@v1
