@@ -51,6 +51,7 @@ jobs:
       - name: Release
         uses: Payadel/release-sv-action@v0.0.2
         with:
+          is_test_mode: false
           version: ${{ inputs.version }}
           skip-changelog: ${{ inputs.skip_changelog }}
           release_directory: ${{ inputs.release_directory }}
