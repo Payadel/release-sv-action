@@ -1,18 +1,49 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
+import {
+  execBashCommand,
+  getBooleanInputOrDefault,
+  getCurrentBranchName,
+  getInputOrDefault,
+} from "./utility";
+import { createPr } from "./prHelper";
 
 let isTestMode;
 
 async function main(): Promise<void> {
   try {
-    isTestMode = getBooleanInputOrDefault("is_test_mode", false);
-    const gitEmail = getInputOrDefault("git-email", "github-action@github.com");
-    const gitUsername = getInputOrDefault("git-user-name", "Github Action");
-    const inputVersion = getInputOrDefault("version", "");
-    const skipChangelog = getBooleanInputOrDefault("skip-changelog", true);
-    const releaseDirectory = getInputOrDefault("release_directory", ".");
-    const releaseFilename = getInputOrDefault("release_file_name", "release");
-    const createPrForBranchName = getInputOrDefault("create_pr_for_branch", "");
+    isTestMode = getBooleanInputOrDefault("is_test_mode", false, isTestMode);
+    const gitEmail = getInputOrDefault(
+      "git-email",
+      "github-action@github.com",
+      isTestMode
+    );
+    const gitUsername = getInputOrDefault(
+      "git-user-name",
+      "Github Action",
+      isTestMode
+    );
+    const inputVersion = getInputOrDefault("version", "", isTestMode);
+    const skipChangelog = getBooleanInputOrDefault(
+      "skip-changelog",
+      true,
+      isTestMode
+    );
+    const releaseDirectory = getInputOrDefault(
+      "release_directory",
+      ".",
+      isTestMode
+    );
+    const releaseFilename = getInputOrDefault(
+      "release_file_name",
+      "release",
+      isTestMode
+    );
+    const createPrForBranchName = getInputOrDefault(
+      "create_pr_for_branch",
+      "",
+      isTestMode
+    );
 
     await setGitConfigs(gitEmail, gitUsername)
       .then(() => installStandardVersionPackage())
@@ -22,32 +53,10 @@ async function main(): Promise<void> {
         readVersion().then(version => core.setOutput("version", version))
       )
       .then(() => createReleaseFile(releaseDirectory, releaseFilename))
-      .then(() => createPr(createPrForBranchName));
+      .then(() => createPr(createPrForBranchName, isTestMode));
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }
-}
-
-function getInputOrDefault(name: string, defaultValue: any): any {
-  let input = core.getInput(name) ?? defaultValue;
-  if (input === "") input = defaultValue;
-
-  core.info(`${name}: ${input}`);
-  if (isTestMode) core.setOutput(name, input);
-
-  return input;
-}
-
-function getBooleanInputOrDefault(
-  name: string,
-  defaultValue: boolean
-): boolean {
-  const input = core.getBooleanInput(name) ?? defaultValue;
-
-  core.info(`${name}: ${input}`);
-  if (isTestMode) core.setOutput(name, input);
-
-  return input;
 }
 
 async function setGitConfigs(
@@ -92,12 +101,6 @@ async function push(): Promise<exec.ExecOutput> {
   );
 }
 
-async function getCurrentBranchName(): Promise<string> {
-  return exec
-    .getExecOutput("git rev-parse --abbrev-ref HEAD")
-    .then(result => result.stdout.trim());
-}
-
 async function readVersion(): Promise<string> {
   return exec
     .getExecOutput("node -p -e \"require('./package.json').version\"")
@@ -115,27 +118,6 @@ async function createReleaseFile(
   core.info("Create release file...");
   return execBashCommand(
     `(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`
-  );
-}
-
-async function execBashCommand(command: string): Promise<exec.ExecOutput> {
-  return exec.getExecOutput(`/bin/bash -c "${command}"`);
-}
-
-async function createPr(
-  createPrForBranchName: string
-): Promise<exec.ExecOutput | null> {
-  if (!createPrForBranchName) return Promise.resolve(null);
-  if (isTestMode) {
-    core.info("Test mode is enable so skipping Create PR.");
-    return Promise.resolve(null);
-  }
-
-  core.info("Create pull request...");
-  return getCurrentBranchName().then(async currentBranchName =>
-    exec.getExecOutput(
-      `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`
-    )
   );
 }
 
