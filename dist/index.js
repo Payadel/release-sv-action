@@ -43,7 +43,6 @@ const core = __importStar(__nccwpck_require__(186));
 const exec = __importStar(__nccwpck_require__(514));
 let isTestMode;
 function main() {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const gitEmail = getInputOrDefault("git-email", "github-action@github.com");
@@ -53,7 +52,7 @@ function main() {
             const releaseDirectory = getInputOrDefault("release_directory", ".");
             const releaseFilename = getInputOrDefault("release_file_name", "release");
             const createPrForBranchName = getInputOrDefault("create_pr_for_branch", "");
-            isTestMode = (_a = core.getBooleanInput("is_test_mode")) !== null && _a !== void 0 ? _a : false;
+            isTestMode = getBooleanInputOrDefault("is_test_mode", false);
             yield setGitConfigs(gitEmail, gitUsername)
                 .then(() => installStandardVersionPackage())
                 .then(() => release(inputVersion, skipChangelog))

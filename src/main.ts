@@ -12,7 +12,7 @@ async function main(): Promise<void> {
     const releaseDirectory = getInputOrDefault("release_directory", ".");
     const releaseFilename = getInputOrDefault("release_file_name", "release");
     const createPrForBranchName = getInputOrDefault("create_pr_for_branch", "");
-    isTestMode = core.getBooleanInput("is_test_mode") ?? false;
+    isTestMode = getBooleanInputOrDefault("is_test_mode", false);
 
     await setGitConfigs(gitEmail, gitUsername)
       .then(() => installStandardVersionPackage())
