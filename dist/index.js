@@ -45,6 +45,7 @@ let isTestMode;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            isTestMode = getBooleanInputOrDefault("is_test_mode", false);
             const gitEmail = getInputOrDefault("git-email", "github-action@github.com");
             const gitUsername = getInputOrDefault("git-user-name", "Github Action");
             const inputVersion = getInputOrDefault("version", "");
@@ -52,7 +53,6 @@ function main() {
             const releaseDirectory = getInputOrDefault("release_directory", ".");
             const releaseFilename = getInputOrDefault("release_file_name", "release");
             const createPrForBranchName = getInputOrDefault("create_pr_for_branch", "");
-            isTestMode = getBooleanInputOrDefault("is_test_mode", false);
             yield setGitConfigs(gitEmail, gitUsername)
                 .then(() => installStandardVersionPackage())
                 .then(() => release(inputVersion, skipChangelog))
@@ -135,7 +135,12 @@ function readVersion() {
 function createReleaseFile(directory, filename) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Create release file...");
-        return exec.getExecOutput(`(cd ${directory} && zip -r "$(git rev-parse --show-toplevel)/${filename}.zip" .)`);
+        return execBashCommand(`(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`);
+    });
+}
+function execBashCommand(command) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return exec.getExecOutput(`/bin/bash -c "${command}"`);
     });
 }
 function createPr(createPrForBranchName) {
