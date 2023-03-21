@@ -23,25 +23,25 @@ export async function createPr(
         `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`
       )
       .catch(e => {
-        if (e.message && e.message.includes("already exists"))
-          return updatePr(createPrForBranchName, currentBranchName);
-        return e;
+        return findActivePr(createPrForBranchName, currentBranchName).then(
+          prNumber => {
+            if (!prNumber) {
+              core.info(`Can not create pull request: ${e.toString()}`);
+              core.info(`Can not find active pull request to update.`);
+              return e;
+            }
+            core.info(
+              "Can not create pull request because it is exist. Try update it."
+            );
+            return updatePr(prNumber);
+          }
+        );
       })
   );
 }
 
-async function updatePr(
-  targetBranchName: string,
-  currentBranchName: string
-): Promise<exec.ExecOutput> {
-  return findActivePr(targetBranchName, currentBranchName).then(prNumber => {
-    if (!prNumber)
-      throw new Error("Can not find any active pull request to edit.");
-
-    return exec.getExecOutput(
-      `gh pr edit ${prNumber} --body-file CHANGELOG.md`
-    );
-  });
+async function updatePr(prNumber: string): Promise<exec.ExecOutput> {
+  return exec.getExecOutput(`gh pr edit ${prNumber} --body-file CHANGELOG.md`);
 }
 
 async function findActivePr(
