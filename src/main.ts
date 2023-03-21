@@ -87,9 +87,15 @@ async function push(): Promise<exec.ExecOutput> {
     return exec.getExecOutput("echo 'Test mode is enable so skipping push...'");
 
   core.info("Push...");
-  return exec.getExecOutput(
-    "git push --follow-tags origin $(git rev-parse --abbrev-ref HEAD)"
+  return getCurrentBranchName().then(currentBranchName =>
+    exec.getExecOutput(`git push --follow-tags origin ${currentBranchName}`)
   );
+}
+
+async function getCurrentBranchName(): Promise<string> {
+  return exec
+    .getExecOutput("git rev-parse --abbrev-ref HEAD")
+    .then(result => result.stdout.trim());
 }
 
 async function readVersion(): Promise<string> {
@@ -126,14 +132,11 @@ async function createPr(
   }
 
   core.info("Create pull request...");
-  return exec
-    .getExecOutput("git rev-parse --abbrev-ref HEAD")
-    .then(result => result.stdout.trim())
-    .then(currentBranchName =>
-      exec.getExecOutput(
-        `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "$(cat CHANGELOG.md)"`
-      )
-    );
+  return getCurrentBranchName().then(currentBranchName =>
+    exec.getExecOutput(
+      `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "$(cat CHANGELOG.md)"`
+    )
+  );
 }
 
 main();
