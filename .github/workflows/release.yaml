@@ -69,11 +69,3 @@ jobs:
           allowUpdates: true
           bodyFile: "CHANGELOG.md"
           tag: 'v${{ steps.release.outputs.version }}'
-
-      - name: Create Pull Request
-        if: ${{ inputs.create_pr_for_branch != '' }}
-        run: |
-          current_branch=$(git rev-parse --abbrev-ref HEAD)
-          gh pr create -B ${{ inputs.create_pr_for_branch }} -H $current_branch --title "Merge $current_branch-v${{ steps.release.outputs.version }} into ${{ inputs.create_pr_for_branch }}" --body "$(cat CHANGELOG.md)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
