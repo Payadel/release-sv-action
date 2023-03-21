@@ -1,8 +1,34 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.3](https://github.com/Payadel/release-sv-action/compare/v0.0.2...v0.0.3) (2023-03-21)
+
+
+### Development: CI/CD, Build, etc
+
+* **release:** fix bugs ([657011e](https://github.com/Payadel/release-sv-action/commit/657011e9a8613a16a373b63b1488d087384ce9d7))
+* **release:** fix bugs ([897feb3](https://github.com/Payadel/release-sv-action/commit/897feb33a69bd53051e33d9ec06f46dce32bd971))
+* **release:** remove excess step `Create Pull Request` ([4149296](https://github.com/Payadel/release-sv-action/commit/41492962a02118104b84da1177e024de703b2d2c))
+* **release:** set GITHUB_TOKEN to env ([a155cff](https://github.com/Payadel/release-sv-action/commit/a155cff1716df43589920dbceafd1e09304ae2d2))
+* **release:** set is_test_mode to false in release.yaml ([e166069](https://github.com/Payadel/release-sv-action/commit/e1660690c8492885afe526612505956f94f9c14a))
+* **release:** use local action for release ([6792be8](https://github.com/Payadel/release-sv-action/commit/6792be86f8ebb4b0fde29757b3da9506c9e78056))
+* **release:** use Payadel/release-sv-action@v0.02 for release ([87b84bf](https://github.com/Payadel/release-sv-action/commit/87b84bf74b39f27fa257f778b820b6f1ea279783))
+
+
+### Fixes
+
+* **action:** add is_test_mode field to action.yml ([cb70cc6](https://github.com/Payadel/release-sv-action/commit/cb70cc69a8db408e19105ad1095beed013a45293))
+* fix git push error. [#17](https://github.com/Payadel/release-sv-action/issues/17) ([64400b0](https://github.com/Payadel/release-sv-action/commit/64400b054842e56de51993a8678f2c9288212c29))
+* fix pull request body ([e9aeddd](https://github.com/Payadel/release-sv-action/commit/e9aeddd6adeea5d22c89ef56c278e239904d3a5a))
+* update PR when exist. fix [#19](https://github.com/Payadel/release-sv-action/issues/19) ([9229341](https://github.com/Payadel/release-sv-action/commit/9229341ee31dbbd14621a6fb21dd22172392cd6b))
+
+
+### Documents
+
+* **changelog:** remove section 0.0.2 ([4b97da1](https://github.com/Payadel/release-sv-action/commit/4b97da172404777ce5b748fda3cdb3afe318b141))
+* **changelog:** v0.0.3 ([eb5f8d9](https://github.com/Payadel/release-sv-action/commit/eb5f8d90b1c6924ad30509b96f0b23e8305aa468))
+* **changelog:** v0.0.3 ([2c9c42e](https://github.com/Payadel/release-sv-action/commit/2c9c42e956b73263e053e3b22b9312048fe057b4))
 
 ### [0.0.2](https://github.com/Payadel/release-sv-action/compare/v0.0.1...v0.0.2) (2023-03-21)
 
