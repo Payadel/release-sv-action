@@ -118,7 +118,14 @@ function push() {
         if (isTestMode)
             return exec.getExecOutput("echo 'Test mode is enable so skipping push...'");
         core.info("Push...");
-        return exec.getExecOutput("git push --follow-tags origin $(git rev-parse --abbrev-ref HEAD)");
+        return getCurrentBranchName().then(currentBranchName => exec.getExecOutput(`git push --follow-tags origin ${currentBranchName}`));
+    });
+}
+function getCurrentBranchName() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return exec
+            .getExecOutput("git rev-parse --abbrev-ref HEAD")
+            .then(result => result.stdout.trim());
     });
 }
 function readVersion() {
@@ -152,10 +159,7 @@ function createPr(createPrForBranchName) {
             return Promise.resolve(null);
         }
         core.info("Create pull request...");
-        return exec
-            .getExecOutput("git rev-parse --abbrev-ref HEAD")
-            .then(result => result.stdout.trim())
-            .then(currentBranchName => exec.getExecOutput(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "$(cat CHANGELOG.md)"`));
+        return getCurrentBranchName().then(currentBranchName => exec.getExecOutput(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "$(cat CHANGELOG.md)"`));
     });
 }
 main();
