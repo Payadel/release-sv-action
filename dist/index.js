@@ -182,7 +182,7 @@ function createPr(createPrForBranchName, isTestMode) {
             return exec
                 .getExecOutput(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`)
                 .catch(e => {
-                if (e.message.contains("already exists"))
+                if (e.message && e.message.includes("already exists"))
                     return updatePr(createPrForBranchName, currentBranchName);
                 return e;
             });
