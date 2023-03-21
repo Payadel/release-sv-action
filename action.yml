@@ -33,6 +33,10 @@ inputs:
     description: 'Create pull request for any branch? Leave empty for skip. Default: ""'
     required: false
     default: ''
+  is_test_mode:
+    description: "Set the value 'true' for testing purposes. Default: false"
+    required: false
+    default: 'false'
 outputs:
   version:
     description: 'Release version'
