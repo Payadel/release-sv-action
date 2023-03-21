@@ -9,6 +9,7 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 
 * **action:** `add is_test_mode` field to
   action.yml ([cb70cc6](https://github.com/Payadel/release-sv-action/commit/cb70cc69a8db408e19105ad1095beed013a45293))
+* **release:** fix git push error #17
 
 ### Development: CI/CD, Build, etc
 
