@@ -5,6 +5,7 @@ let isTestMode;
 
 async function main(): Promise<void> {
   try {
+    isTestMode = getBooleanInputOrDefault("is_test_mode", false);
     const gitEmail = getInputOrDefault("git-email", "github-action@github.com");
     const gitUsername = getInputOrDefault("git-user-name", "Github Action");
     const inputVersion = getInputOrDefault("version", "");
@@ -12,7 +13,6 @@ async function main(): Promise<void> {
     const releaseDirectory = getInputOrDefault("release_directory", ".");
     const releaseFilename = getInputOrDefault("release_file_name", "release");
     const createPrForBranchName = getInputOrDefault("create_pr_for_branch", "");
-    isTestMode = getBooleanInputOrDefault("is_test_mode", false);
 
     await setGitConfigs(gitEmail, gitUsername)
       .then(() => installStandardVersionPackage())
