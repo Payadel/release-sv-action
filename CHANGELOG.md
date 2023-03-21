@@ -14,7 +14,7 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 ### Development: CI/CD, Build, etc
 
 * **release:** fix
-  bugs ([897feb3](https://github.com/Payadel/release-sv-action/commit/897feb33a69bd53051e33d9ec06f46dce32bd971))
+  bugs, use local action and set GITHUB_TOKEN ([897feb3](https://github.com/Payadel/release-sv-action/commit/897feb33a69bd53051e33d9ec06f46dce32bd971))
 * **release:** use Payadel/release-sv-action@v0.02 for
   release ([87b84bf](https://github.com/Payadel/release-sv-action/commit/87b84bf74b39f27fa257f778b820b6f1ea279783))
 
