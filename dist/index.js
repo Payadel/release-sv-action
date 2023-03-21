@@ -41,49 +41,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
 const exec = __importStar(__nccwpck_require__(514));
+const utility_1 = __nccwpck_require__(857);
+const prHelper_1 = __nccwpck_require__(601);
 let isTestMode;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            isTestMode = getBooleanInputOrDefault("is_test_mode", false);
-            const gitEmail = getInputOrDefault("git-email", "github-action@github.com");
-            const gitUsername = getInputOrDefault("git-user-name", "Github Action");
-            const inputVersion = getInputOrDefault("version", "");
-            const skipChangelog = getBooleanInputOrDefault("skip-changelog", true);
-            const releaseDirectory = getInputOrDefault("release_directory", ".");
-            const releaseFilename = getInputOrDefault("release_file_name", "release");
-            const createPrForBranchName = getInputOrDefault("create_pr_for_branch", "");
+            isTestMode = (0, utility_1.getBooleanInputOrDefault)("is_test_mode", false, isTestMode);
+            const gitEmail = (0, utility_1.getInputOrDefault)("git-email", "github-action@github.com", isTestMode);
+            const gitUsername = (0, utility_1.getInputOrDefault)("git-user-name", "Github Action", isTestMode);
+            const inputVersion = (0, utility_1.getInputOrDefault)("version", "", isTestMode);
+            const skipChangelog = (0, utility_1.getBooleanInputOrDefault)("skip-changelog", true, isTestMode);
+            const releaseDirectory = (0, utility_1.getInputOrDefault)("release_directory", ".", isTestMode);
+            const releaseFilename = (0, utility_1.getInputOrDefault)("release_file_name", "release", isTestMode);
+            const createPrForBranchName = (0, utility_1.getInputOrDefault)("create_pr_for_branch", "", isTestMode);
             yield setGitConfigs(gitEmail, gitUsername)
                 .then(() => installStandardVersionPackage())
                 .then(() => release(inputVersion, skipChangelog))
                 .then(() => push())
                 .then(() => readVersion().then(version => core.setOutput("version", version)))
                 .then(() => createReleaseFile(releaseDirectory, releaseFilename))
-                .then(() => createPr(createPrForBranchName));
+                .then(() => (0, prHelper_1.createPr)(createPrForBranchName, isTestMode));
         }
         catch (error) {
             if (error instanceof Error)
                 core.setFailed(error.message);
         }
     });
-}
-function getInputOrDefault(name, defaultValue) {
-    var _a;
-    let input = (_a = core.getInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
-    if (input === "")
-        input = defaultValue;
-    core.info(`${name}: ${input}`);
-    if (isTestMode)
-        core.setOutput(name, input);
-    return input;
-}
-function getBooleanInputOrDefault(name, defaultValue) {
-    var _a;
-    const input = (_a = core.getBooleanInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
-    core.info(`${name}: ${input}`);
-    if (isTestMode)
-        core.setOutput(name, input);
-    return input;
 }
 function setGitConfigs(email, username) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -118,14 +102,7 @@ function push() {
         if (isTestMode)
             return exec.getExecOutput("echo 'Test mode is enable so skipping push...'");
         core.info("Push...");
-        return getCurrentBranchName().then(currentBranchName => exec.getExecOutput(`git push --follow-tags origin ${currentBranchName}`));
-    });
-}
-function getCurrentBranchName() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return exec
-            .getExecOutput("git rev-parse --abbrev-ref HEAD")
-            .then(result => result.stdout.trim());
+        return (0, utility_1.getCurrentBranchName)().then(currentBranchName => exec.getExecOutput(`git push --follow-tags origin ${currentBranchName}`));
     });
 }
 function readVersion() {
@@ -142,15 +119,57 @@ function readVersion() {
 function createReleaseFile(directory, filename) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Create release file...");
-        return execBashCommand(`(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`);
+        return (0, utility_1.execBashCommand)(`(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`);
     });
 }
-function execBashCommand(command) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return exec.getExecOutput(`/bin/bash -c "${command}"`);
+main();
+//# sourceMappingURL=main.js.map
+
+/***/ }),
+
+/***/ 601:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-}
-function createPr(createPrForBranchName) {
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createPr = void 0;
+const exec = __importStar(__nccwpck_require__(514));
+const core = __importStar(__nccwpck_require__(186));
+const utility_1 = __nccwpck_require__(857);
+function createPr(createPrForBranchName, isTestMode) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!createPrForBranchName)
             return Promise.resolve(null);
@@ -159,11 +178,124 @@ function createPr(createPrForBranchName) {
             return Promise.resolve(null);
         }
         core.info("Create pull request...");
-        return getCurrentBranchName().then(currentBranchName => exec.getExecOutput(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "$(cat CHANGELOG.md)"`));
+        return (0, utility_1.getCurrentBranchName)().then((currentBranchName) => __awaiter(this, void 0, void 0, function* () {
+            return exec
+                .getExecOutput(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`)
+                .catch(e => {
+                if (e.message.contains("already exists"))
+                    return updatePr(createPrForBranchName, currentBranchName);
+                return e;
+            });
+        }));
     });
 }
-main();
-//# sourceMappingURL=main.js.map
+exports.createPr = createPr;
+function updatePr(targetBranchName, currentBranchName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return findActivePr(targetBranchName, currentBranchName).then(prNumber => {
+            if (!prNumber)
+                throw new Error("Can not find any active pull request to edit.");
+            return exec.getExecOutput(`gh pr edit ${prNumber} --body-file CHANGELOG.md`);
+        });
+    });
+}
+function findActivePr(targetBranchName, currentBranchName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return exec
+            .getExecOutput(`gh pr list -B ${targetBranchName} -H ${currentBranchName} --state open --json number`)
+            .then(result => JSON.parse(result.stdout))
+            .then((json) => {
+            switch (json.length) {
+                case 0:
+                    return null;
+                case 1:
+                    return json[0].number.toString();
+                default:
+                    throw new Error("More than one pull requests found.");
+            }
+        });
+    });
+}
+//# sourceMappingURL=prHelper.js.map
+
+/***/ }),
+
+/***/ 857:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.execBashCommand = exports.getCurrentBranchName = exports.getBooleanInputOrDefault = exports.getInputOrDefault = void 0;
+const core = __importStar(__nccwpck_require__(186));
+const exec = __importStar(__nccwpck_require__(514));
+function getInputOrDefault(name, defaultValue, isTestMode) {
+    var _a;
+    let input = (_a = core.getInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
+    if (input === "")
+        input = defaultValue;
+    core.info(`${name}: ${input}`);
+    if (isTestMode)
+        core.setOutput(name, input);
+    return input;
+}
+exports.getInputOrDefault = getInputOrDefault;
+function getBooleanInputOrDefault(name, defaultValue, isTestMode) {
+    var _a;
+    const input = (_a = core.getBooleanInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
+    core.info(`${name}: ${input}`);
+    if (isTestMode)
+        core.setOutput(name, input);
+    return input;
+}
+exports.getBooleanInputOrDefault = getBooleanInputOrDefault;
+function getCurrentBranchName() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return exec
+            .getExecOutput("git rev-parse --abbrev-ref HEAD")
+            .then(result => result.stdout.trim());
+    });
+}
+exports.getCurrentBranchName = getCurrentBranchName;
+function execBashCommand(command) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return exec.getExecOutput(`/bin/bash -c "${command}"`);
+    });
+}
+exports.execBashCommand = execBashCommand;
+//# sourceMappingURL=utility.js.map
 
 /***/ }),
 
