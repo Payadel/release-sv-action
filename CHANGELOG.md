@@ -1,7 +1,13 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [0.0.4](https://github.com/Payadel/release-sv-action/compare/v0.0.3...v0.0.4) (2023-03-21)
+
+
+### Fixes
+
+* fix pull request update bug ([5d5866d](https://github.com/Payadel/release-sv-action/commit/5d5866d111c643a87b3406a338f4e8e4b2fa0b19))
 
 ### [0.0.3](https://github.com/Payadel/release-sv-action/compare/v0.0.2...v0.0.3) (2023-03-21)
 
