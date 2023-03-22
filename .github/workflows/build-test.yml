@@ -75,6 +75,6 @@ jobs:
           ./assert.sh "${{ steps.release_with_inputs.outputs.skipReleaseFile }}" "false" "skip-release-file"
           ./assert.sh "${{ steps.release_with_inputs.outputs.releaseDirectory }}" "." "release-directory"
           ./assert.sh "${{ steps.release_with_inputs.outputs.releaseFileName }}" "fake-name" "release-file-name"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.createPrForBranch }}" "branch-name" "create-pr-for-branch"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.createPrForBranchName }}" "branch-name" "create-pr-for-branch"
           ./assert.sh "${{ steps.release_with_inputs.outputs.version }}" "100.100.100" "version"
           ./assert.sh "${{ steps.release_with_inputs.outputs.releaseCommand }}" "standard-version --release-as 100.100.100" "releaseCommand"
