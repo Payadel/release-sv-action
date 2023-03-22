@@ -1,66 +1,32 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
-import {
-  execBashCommand,
-  getBooleanInputOrDefault,
-  getCurrentBranchName,
-  getInputOrDefault,
-} from "./utility";
+import { execBashCommand, getCurrentBranchName } from "./utility";
 import { createPr } from "./prHelper";
-
-let isTestMode;
+import { exportInputsInTestMode, GetInputs } from "./inputs";
 
 async function main(): Promise<void> {
   try {
-    isTestMode = getBooleanInputOrDefault("is_test_mode", false, isTestMode);
-    const gitEmail = getInputOrDefault(
-      "git-email",
-      "github-action@github.com",
-      isTestMode
-    );
-    const gitUsername = getInputOrDefault(
-      "git-user-name",
-      "Github Action",
-      isTestMode
-    );
-    const inputVersion = getInputOrDefault("version", "", isTestMode);
-    const skipChangelog = getBooleanInputOrDefault(
-      "skip-changelog",
-      true,
-      isTestMode
-    );
-    const skipReleaseFile = getBooleanInputOrDefault(
-      "skip_release_file",
-      true,
-      isTestMode
-    );
-    const releaseDirectory = getInputOrDefault(
-      "release_directory",
-      ".",
-      isTestMode
-    );
-    const releaseFilename = getInputOrDefault(
-      "release_file_name",
-      "release",
-      isTestMode
-    );
-    const createPrForBranchName = getInputOrDefault(
-      "create_pr_for_branch",
-      "",
-      isTestMode
-    );
+    await GetInputs().then(inputs => {
+      exportInputsInTestMode(inputs);
 
-    await setGitConfigs(gitEmail, gitUsername)
-      .then(() => installStandardVersionPackage())
-      .then(() => release(inputVersion, skipChangelog))
-      .then(() =>
-        readVersion().then(version => core.setOutput("version", version))
-      )
-      .then(() =>
-        createReleaseFile(releaseDirectory, releaseFilename, skipReleaseFile)
-      )
-      .then(() => push())
-      .then(() => createPr(createPrForBranchName, isTestMode));
+      return setGitConfigs(inputs.gitEmail, inputs.gitUsername)
+        .then(() => installStandardVersionPackage())
+        .then(() =>
+          release(inputs.inputVersion, inputs.skipChangelog, inputs.isTestMode)
+        )
+        .then(() =>
+          readVersion().then(version => core.setOutput("version", version))
+        )
+        .then(() =>
+          createReleaseFile(
+            inputs.releaseDirectory,
+            inputs.releaseFilename,
+            inputs.skipReleaseFile
+          )
+        )
+        .then(() => push(inputs.isTestMode))
+        .then(() => createPr(inputs.createPrForBranchName, inputs.isTestMode));
+    });
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }
@@ -71,6 +37,7 @@ async function setGitConfigs(
   username: string
 ): Promise<exec.ExecOutput> {
   core.info("Config git...");
+
   return exec
     .getExecOutput(`git config --global user.email "${email}"`)
     .then(() =>
@@ -80,12 +47,14 @@ async function setGitConfigs(
 
 async function installStandardVersionPackage(): Promise<exec.ExecOutput> {
   core.info("Install standard-version npm package...");
+
   return exec.getExecOutput("npm install -g standard-version");
 }
 
 async function release(
   version: string,
-  skipChangelog: boolean
+  skipChangelog: boolean,
+  isTestMode: boolean
 ): Promise<exec.ExecOutput> {
   core.info("Create release...");
   let releaseCommand = "standard-version";
@@ -98,7 +67,7 @@ async function release(
   return exec.getExecOutput(releaseCommand);
 }
 
-async function push(): Promise<exec.ExecOutput> {
+async function push(isTestMode: boolean): Promise<exec.ExecOutput> {
   if (isTestMode)
     return exec.getExecOutput("echo 'Test mode is enable so skipping push...'");
 
