@@ -21,6 +21,10 @@ inputs:
     description: 'Skip generate changelog file or not? Default: true'
     default: "true"
     required: false
+  skip_release_file:
+    description: 'Skip create release file or not? Default: true'
+    default: true
+    required: false
   release_file_name:
     description: 'Release file name. Default: release'
     default: "release"

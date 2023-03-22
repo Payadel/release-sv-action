@@ -29,6 +29,11 @@ async function main(): Promise<void> {
       true,
       isTestMode
     );
+    const skipReleaseFile = getBooleanInputOrDefault(
+      "skip_release_file",
+      true,
+      isTestMode
+    );
     const releaseDirectory = getInputOrDefault(
       "release_directory",
       ".",
@@ -52,7 +57,9 @@ async function main(): Promise<void> {
       .then(() =>
         readVersion().then(version => core.setOutput("version", version))
       )
-      .then(() => createReleaseFile(releaseDirectory, releaseFilename))
+      .then(() =>
+        createReleaseFile(releaseDirectory, releaseFilename, skipReleaseFile)
+      )
       .then(() => createPr(createPrForBranchName, isTestMode));
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
@@ -113,8 +120,14 @@ async function readVersion(): Promise<string> {
 
 async function createReleaseFile(
   directory: string,
-  filename: string
-): Promise<exec.ExecOutput> {
+  filename: string,
+  skipReleaseFile: boolean
+): Promise<exec.ExecOutput | null> {
+  if (skipReleaseFile) {
+    core.info("Skip release file requested so skipping create release file.");
+    return Promise.resolve(null);
+  }
+
   core.info("Create release file...");
   return execBashCommand(
     `(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`
