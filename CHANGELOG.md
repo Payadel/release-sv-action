@@ -1,8 +1,30 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/Payadel/release-sv-action/compare/v0.1.0...v0.2.0) (2023-03-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename input names
+
+### Refactors
+
+* manage inputs in inputs.ts ([76922c5](https://github.com/Payadel/release-sv-action/commit/76922c5d6050442fe90bfe3fa787eb406e135166))
+
+
+### Development: CI/CD, Build, etc
+
+* add `skip_release_file` option to GitHub actions ([e173e66](https://github.com/Payadel/release-sv-action/commit/e173e661962488d3a21445ab1014eaf7339e27b1))
+* **release:** add `skip_release_file` option to release.yaml ([ade4d52](https://github.com/Payadel/release-sv-action/commit/ade4d528c3175207e4ad1d1a7de5cba460649e80))
+* update eslint rules ([29003cc](https://github.com/Payadel/release-sv-action/commit/29003ccb689d70c5817982c5145aae392ec15f11))
+
+
+### Fixes
+
+* rename input names ([5506eed](https://github.com/Payadel/release-sv-action/commit/5506eed6070c925dd0c901b693bba1bb3df98d83))
+* run `push` function in the last steps to reduce the possibility of error ([7f11d5e](https://github.com/Payadel/release-sv-action/commit/7f11d5e617f72f6998fb276117a292d43f6b7688))
 
 ## [0.1.0](https://github.com/Payadel/release-sv-action/compare/v0.0.4...v0.1.0) (2023-03-22)
 
