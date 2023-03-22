@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/Payadel/release-sv-action/compare/v0.2.0...v0.2.1) (2023-03-22)
+
+
+### Features
+
+* **releaseFileName:** add `releaseFileName` as output ([4a20ac7](https://github.com/Payadel/release-sv-action/commit/4a20ac7f79ac85ddb9cea5a69b8c1868e1755ed0))
+
+
+### Development: CI/CD, Build, etc
+
+* fix build-test.yml ([45f6b8c](https://github.com/Payadel/release-sv-action/commit/45f6b8ca16528ca154a14a432080a0501dbf70c0))
+
 ## [0.2.0](https://github.com/Payadel/release-sv-action/compare/v0.1.0...v0.2.0) (2023-03-22)
 
 
