@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/Payadel/release-sv-action/compare/v0.1.0...v0.1.1) (2023-03-22)
+
+
+### Development: CI/CD, Build, etc
+
+* **release:** add `skip_release_file` option to release.yaml ([ade4d52](https://github.com/Payadel/release-sv-action/commit/ade4d528c3175207e4ad1d1a7de5cba460649e80))
+
+
+### Fixes
+
+* run `push` function in the last steps to reduce the possibility of error ([7f11d5e](https://github.com/Payadel/release-sv-action/commit/7f11d5e617f72f6998fb276117a292d43f6b7688))
+
 ## [0.1.0](https://github.com/Payadel/release-sv-action/compare/v0.0.4...v0.1.0) (2023-03-22)
 
 
