@@ -12,7 +12,7 @@ async function main(): Promise<void> {
       return setGitConfigs(inputs.gitEmail, inputs.gitUsername)
         .then(() => installStandardVersionPackage())
         .then(() =>
-          release(inputs.inputVersion, inputs.skipChangelog, inputs.isTestMode)
+          release(inputs.version, inputs.skipChangelog, inputs.isTestMode)
         )
         .then(() =>
           readVersion().then(version => core.setOutput("version", version))

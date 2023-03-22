@@ -58,13 +58,13 @@ jobs:
         uses: ./
         id: release
         with:
-          is_test_mode: false
+          is-test-mode: false
           version: ${{ inputs.version }}
           skip-changelog: ${{ inputs.skip_changelog }}
-          skip_release_file: ${{ inputs.skip_release_file }}
-          release_directory: ${{ inputs.release_directory }}
-          release_file_name: ${{ inputs.release_file_name }}
-          create_pr_for_branch: ${{ inputs.create_pr_for_branch }}
+          skip-release-file: ${{ inputs.skip_release_file }}
+          release-directory: ${{ inputs.release_directory }}
+          release-file-name: ${{ inputs.release_file_name }}
+          create-pr-for-branch: ${{ inputs.create_pr_for_branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

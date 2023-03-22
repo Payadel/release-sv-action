@@ -4,7 +4,7 @@ export interface IInputs {
   isTestMode: boolean;
   gitEmail: string;
   gitUsername: string;
-  inputVersion: string;
+  version: string;
   skipChangelog: boolean;
   skipReleaseFile: boolean;
   releaseDirectory: string;
@@ -16,15 +16,15 @@ export function GetInputs(): Promise<IInputs> {
   return new Promise<IInputs>((resolve, reject) => {
     try {
       const inputs: IInputs = {
-        isTestMode: getBooleanInputOrDefault("is_test_mode", false),
+        isTestMode: getBooleanInputOrDefault("is-test-mode", false),
         gitEmail: getInputOrDefault("git-email", "github-action@github.com"),
         gitUsername: getInputOrDefault("git-user-name", "Github Action"),
-        inputVersion: getInputOrDefault("version", ""),
+        version: getInputOrDefault("version", ""),
         skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
-        skipReleaseFile: getBooleanInputOrDefault("skip_release_file", true),
-        releaseDirectory: getInputOrDefault("release_directory", "."),
-        releaseFilename: getInputOrDefault("release_file_name", "release"),
-        createPrForBranchName: getInputOrDefault("create_pr_for_branch", ""),
+        skipReleaseFile: getBooleanInputOrDefault("skip-release-file", true),
+        releaseDirectory: getInputOrDefault("release-directory", "."),
+        releaseFilename: getInputOrDefault("release-file-name", "release"),
+        createPrForBranchName: getInputOrDefault("create-pr-for-branch", ""),
       };
       resolve(inputs);
     } catch (e) {
