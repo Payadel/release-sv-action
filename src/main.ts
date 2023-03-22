@@ -20,7 +20,7 @@ async function main(): Promise<void> {
         .then(() =>
           createReleaseFile(
             inputs.releaseDirectory,
-            inputs.releaseFilename,
+            inputs.releaseFileName,
             inputs.skipReleaseFile
           )
         )
@@ -94,12 +94,15 @@ async function createReleaseFile(
 ): Promise<exec.ExecOutput | null> {
   if (skipReleaseFile) {
     core.info("Skip release file requested so skipping create release file.");
+    core.setOutput("releaseFileName", "");
     return Promise.resolve(null);
   }
 
   core.info("Create release file...");
+  const releaseFileName = `${filename}.zip`;
+  core.setOutput("releaseFileName", releaseFileName);
   return execBashCommand(
-    `(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`
+    `(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${releaseFileName} .)`
   );
 }
 

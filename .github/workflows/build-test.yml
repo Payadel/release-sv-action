@@ -44,10 +44,10 @@ jobs:
           ./assert.sh "${{ steps.release_without_inputs.outputs.gitUsername }}" "Github Action" "git-user-name"
           ./assert.sh "${{ steps.release_without_inputs.outputs.skipChangelog }}" "true" "skip-changelog"
           ./assert.sh "${{ steps.release_without_inputs.outputs.skipReleaseFile }}" "true" "skip-release-file"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseFilename }}" "release" "release-file-name"
           ./assert.sh "${{ steps.release_without_inputs.outputs.releaseDirectory }}" "." "release-directory"
           ./assert.sh "${{ steps.release_without_inputs.outputs.createPrForBranchName }}" "" "create-pr-for-branch"
           ./assert.sh "${{ steps.release_without_inputs.outputs.releaseCommand }}" "standard-version --skip.changelog" "releaseCommand"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseFileName }}" "" "release-file-name"
           
 
       - name: Run action with inputs
@@ -74,7 +74,7 @@ jobs:
           ./assert.sh "${{ steps.release_with_inputs.outputs.skipChangelog }}" "false" "skip-changelog"
           ./assert.sh "${{ steps.release_with_inputs.outputs.skipReleaseFile }}" "false" "skip-release-file"
           ./assert.sh "${{ steps.release_with_inputs.outputs.releaseDirectory }}" "." "release-directory"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.releaseFileName }}" "fake-name" "release-file-name"
           ./assert.sh "${{ steps.release_with_inputs.outputs.createPrForBranchName }}" "branch-name" "create-pr-for-branch"
           ./assert.sh "${{ steps.release_with_inputs.outputs.version }}" "100.100.100" "version"
           ./assert.sh "${{ steps.release_with_inputs.outputs.releaseCommand }}" "standard-version --release-as 100.100.100" "releaseCommand"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.releaseFileName }}" "fake-name.zip" "release-file-name"

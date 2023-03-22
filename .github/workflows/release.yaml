@@ -71,9 +71,7 @@ jobs:
       - name: GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: ${{ inputs.release_file_name }}.zip
-          artifactErrorsFailBuild: true
+          artifacts: '${{ steps.release.outputs.releaseFileName }}'
           allowUpdates: true
           bodyFile: "CHANGELOG.md"
           tag: 'v${{ steps.release.outputs.version }}'
-        if: ${{ inputs.skip_release_file == false }}
