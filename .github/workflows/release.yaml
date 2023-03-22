@@ -46,6 +46,7 @@ jobs:
 
       - name: Print inputs
         run: |
+          echo "skip_release_file: ${{ inputs.skip_release_file }}"
           echo "release_file_name: ${{ inputs.release_file_name }}"
           echo "release_directory: ${{ inputs.release_directory }}"
           echo "skip_changelog: ${{ inputs.skip_changelog }}"

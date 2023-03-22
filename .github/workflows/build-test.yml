@@ -1,5 +1,8 @@
 name: 'build-test'
 on:
+  push:
+    branches:
+      - dev
   pull_request:
     branches:
       - main
@@ -36,12 +39,14 @@ jobs:
           cd .github/workflows
           if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
           chmod +x assert.sh
-          ./assert.sh "${{ steps.release_without_inputs.outputs.git-email }}" "github-action@github.com" "git-email"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.git-user-name }}" "Github Action" "git-user-name"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.skip-changelog }}" "true" "skip-changelog"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.release_file_name }}" "release" "release_file_name"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.release_directory }}" "." "release_directory"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.create_pr_for_branch }}" "" "create_pr_for_branch"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.isTestMode }}" "true" "is-test-mode"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.gitEmail }}" "github-action@github.com" "git-email"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.gitUsername }}" "Github Action" "git-user-name"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.skipChangelog }}" "true" "skip-changelog"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.skipReleaseFile }}" "true" "skip-release-file"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseFilename }}" "release" "release_file_name"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseDirectory }}" "." "release_directory"
+          ./assert.sh "${{ steps.release_without_inputs.outputs.createPrForBranchName }}" "" "create_pr_for_branch"
           ./assert.sh "${{ steps.release_without_inputs.outputs.releaseCommand }}" "standard-version --skip.changelog" "releaseCommand"
           
 
@@ -54,6 +59,7 @@ jobs:
           git-user-name: "fake name"
           version: 100.100.100
           skip-changelog: false
+          skip_release_file: false
           release_directory: .
           release_file_name: fake-name
           create_pr_for_branch: branch-name
@@ -66,6 +72,7 @@ jobs:
           ./assert.sh "${{ steps.release_with_inputs.outputs.git-email }}" "fake@fake.com" "git-email"
           ./assert.sh "${{ steps.release_with_inputs.outputs.git-user-name }}" "fake name" "git-user-name"
           ./assert.sh "${{ steps.release_with_inputs.outputs.skip-changelog }}" "false" "skip-changelog"
+          ./assert.sh "${{ steps.release_with_inputs.outputs.skip_release_file }}" "false" "skip_release_file"
           ./assert.sh "${{ steps.release_with_inputs.outputs.release_directory }}" "." "release_directory"
           ./assert.sh "${{ steps.release_with_inputs.outputs.release_file_name }}" "fake-name" "release_file_name"
           ./assert.sh "${{ steps.release_with_inputs.outputs.create_pr_for_branch }}" "branch-name" "create_pr_for_branch"
