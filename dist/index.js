@@ -1,6 +1,83 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 180:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.exportInputsInTestMode = exports.GetInputs = void 0;
+const core = __importStar(__nccwpck_require__(186));
+function GetInputs() {
+    return new Promise((resolve, reject) => {
+        try {
+            const inputs = {
+                isTestMode: getBooleanInputOrDefault("is-test-mode", false),
+                gitEmail: getInputOrDefault("git-email", "github-action@github.com"),
+                gitUsername: getInputOrDefault("git-user-name", "Github Action"),
+                version: getInputOrDefault("version", ""),
+                skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
+                skipReleaseFile: getBooleanInputOrDefault("skip-release-file", true),
+                releaseDirectory: getInputOrDefault("release-directory", "."),
+                releaseFilename: getInputOrDefault("release-file-name", "release"),
+                createPrForBranchName: getInputOrDefault("create-pr-for-branch", ""),
+            };
+            resolve(inputs);
+        }
+        catch (e) {
+            reject(e);
+        }
+    });
+}
+exports.GetInputs = GetInputs;
+function exportInputsInTestMode(inputs) {
+    for (const key of Object.getOwnPropertyNames(inputs)) {
+        core.setOutput(key, inputs[key]);
+    }
+}
+exports.exportInputsInTestMode = exportInputsInTestMode;
+function getInputOrDefault(name, defaultValue) {
+    var _a;
+    let input = (_a = core.getInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
+    if (input === "")
+        input = defaultValue;
+    core.info(`${name}: ${input}`);
+    return input;
+}
+function getBooleanInputOrDefault(name, defaultValue) {
+    var _a;
+    const input = (_a = core.getBooleanInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
+    core.info(`${name}: ${input}`);
+    return input;
+}
+//# sourceMappingURL=inputs.js.map
+
+/***/ }),
+
 /***/ 109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -43,26 +120,20 @@ const core = __importStar(__nccwpck_require__(186));
 const exec = __importStar(__nccwpck_require__(514));
 const utility_1 = __nccwpck_require__(857);
 const prHelper_1 = __nccwpck_require__(601);
-let isTestMode;
+const inputs_1 = __nccwpck_require__(180);
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            isTestMode = (0, utility_1.getBooleanInputOrDefault)("is_test_mode", false, isTestMode);
-            const gitEmail = (0, utility_1.getInputOrDefault)("git-email", "github-action@github.com", isTestMode);
-            const gitUsername = (0, utility_1.getInputOrDefault)("git-user-name", "Github Action", isTestMode);
-            const inputVersion = (0, utility_1.getInputOrDefault)("version", "", isTestMode);
-            const skipChangelog = (0, utility_1.getBooleanInputOrDefault)("skip-changelog", true, isTestMode);
-            const skipReleaseFile = (0, utility_1.getBooleanInputOrDefault)("skip_release_file", true, isTestMode);
-            const releaseDirectory = (0, utility_1.getInputOrDefault)("release_directory", ".", isTestMode);
-            const releaseFilename = (0, utility_1.getInputOrDefault)("release_file_name", "release", isTestMode);
-            const createPrForBranchName = (0, utility_1.getInputOrDefault)("create_pr_for_branch", "", isTestMode);
-            yield setGitConfigs(gitEmail, gitUsername)
-                .then(() => installStandardVersionPackage())
-                .then(() => release(inputVersion, skipChangelog))
-                .then(() => push())
-                .then(() => readVersion().then(version => core.setOutput("version", version)))
-                .then(() => createReleaseFile(releaseDirectory, releaseFilename, skipReleaseFile))
-                .then(() => (0, prHelper_1.createPr)(createPrForBranchName, isTestMode));
+            yield (0, inputs_1.GetInputs)().then(inputs => {
+                (0, inputs_1.exportInputsInTestMode)(inputs);
+                return setGitConfigs(inputs.gitEmail, inputs.gitUsername)
+                    .then(() => installStandardVersionPackage())
+                    .then(() => release(inputs.version, inputs.skipChangelog, inputs.isTestMode))
+                    .then(() => readVersion().then(version => core.setOutput("version", version)))
+                    .then(() => createReleaseFile(inputs.releaseDirectory, inputs.releaseFilename, inputs.skipReleaseFile))
+                    .then(() => push(inputs.isTestMode))
+                    .then(() => (0, prHelper_1.createPr)(inputs.createPrForBranchName, inputs.isTestMode));
+            });
         }
         catch (error) {
             if (error instanceof Error)
@@ -84,7 +155,7 @@ function installStandardVersionPackage() {
         return exec.getExecOutput("npm install -g standard-version");
     });
 }
-function release(version, skipChangelog) {
+function release(version, skipChangelog, isTestMode) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Create release...");
         let releaseCommand = "standard-version";
@@ -98,7 +169,7 @@ function release(version, skipChangelog) {
         return exec.getExecOutput(releaseCommand);
     });
 }
-function push() {
+function push(isTestMode) {
     return __awaiter(this, void 0, void 0, function* () {
         if (isTestMode)
             return exec.getExecOutput("echo 'Test mode is enable so skipping push...'");
@@ -265,29 +336,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.execBashCommand = exports.getCurrentBranchName = exports.getBooleanInputOrDefault = exports.getInputOrDefault = void 0;
-const core = __importStar(__nccwpck_require__(186));
+exports.execBashCommand = exports.getCurrentBranchName = void 0;
 const exec = __importStar(__nccwpck_require__(514));
-function getInputOrDefault(name, defaultValue, isTestMode) {
-    var _a;
-    let input = (_a = core.getInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
-    if (input === "")
-        input = defaultValue;
-    core.info(`${name}: ${input}`);
-    if (isTestMode)
-        core.setOutput(name, input);
-    return input;
-}
-exports.getInputOrDefault = getInputOrDefault;
-function getBooleanInputOrDefault(name, defaultValue, isTestMode) {
-    var _a;
-    const input = (_a = core.getBooleanInput(name)) !== null && _a !== void 0 ? _a : defaultValue;
-    core.info(`${name}: ${input}`);
-    if (isTestMode)
-        core.setOutput(name, input);
-    return input;
-}
-exports.getBooleanInputOrDefault = getBooleanInputOrDefault;
 function getCurrentBranchName() {
     return __awaiter(this, void 0, void 0, function* () {
         return exec

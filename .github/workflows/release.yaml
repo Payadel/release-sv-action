@@ -3,6 +3,11 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      skip_release_file:
+        type: boolean
+        required: false
+        default: true
+        description: Skip create release file
       release_file_name:
         required: true
         default: 'release'
@@ -41,6 +46,7 @@ jobs:
 
       - name: Print inputs
         run: |
+          echo "skip_release_file: ${{ inputs.skip_release_file }}"
           echo "release_file_name: ${{ inputs.release_file_name }}"
           echo "release_directory: ${{ inputs.release_directory }}"
           echo "skip_changelog: ${{ inputs.skip_changelog }}"
@@ -52,12 +58,13 @@ jobs:
         uses: ./
         id: release
         with:
-          is_test_mode: false
+          is-test-mode: false
           version: ${{ inputs.version }}
           skip-changelog: ${{ inputs.skip_changelog }}
-          release_directory: ${{ inputs.release_directory }}
-          release_file_name: ${{ inputs.release_file_name }}
-          create_pr_for_branch: ${{ inputs.create_pr_for_branch }}
+          skip-release-file: ${{ inputs.skip_release_file }}
+          release-directory: ${{ inputs.release_directory }}
+          release-file-name: ${{ inputs.release_file_name }}
+          create-pr-for-branch: ${{ inputs.create_pr_for_branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -69,3 +76,4 @@ jobs:
           allowUpdates: true
           bodyFile: "CHANGELOG.md"
           tag: 'v${{ steps.release.outputs.version }}'
+        if: ${{ inputs.skip_release_file == false }}

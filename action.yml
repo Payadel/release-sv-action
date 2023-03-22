@@ -21,23 +21,23 @@ inputs:
     description: 'Skip generate changelog file or not? Default: true'
     default: "true"
     required: false
-  skip_release_file:
+  skip-release-file:
     description: 'Skip create release file or not? Default: true'
     default: true
     required: false
-  release_file_name:
+  release-file-name:
     description: 'Release file name. Default: release'
     default: "release"
     required: false
-  release_directory:
+  release-directory:
     description: 'Where are the release files?. Default: .'
     default: '.'
     required: false
-  create_pr_for_branch:
+  create-pr-for-branch:
     description: 'Create pull request for any branch? Leave empty for skip. Default: ""'
     required: false
     default: ''
-  is_test_mode:
+  is-test-mode:
     description: "Set the value 'true' for testing purposes. Default: false"
     required: false
     default: 'false'
