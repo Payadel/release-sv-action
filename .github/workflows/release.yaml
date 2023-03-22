@@ -3,6 +3,11 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      skip_release_file:
+        type: boolean
+        required: false
+        default: true
+        description: Skip create release file
       release_file_name:
         required: true
         default: 'release'
@@ -55,6 +60,7 @@ jobs:
           is_test_mode: false
           version: ${{ inputs.version }}
           skip-changelog: ${{ inputs.skip_changelog }}
+          skip_release_file: ${{ inputs.skip_release_file }}
           release_directory: ${{ inputs.release_directory }}
           release_file_name: ${{ inputs.release_file_name }}
           create_pr_for_branch: ${{ inputs.create_pr_for_branch }}
@@ -69,3 +75,4 @@ jobs:
           allowUpdates: true
           bodyFile: "CHANGELOG.md"
           tag: 'v${{ steps.release.outputs.version }}'
+        if: ${{ inputs.skip_release_file == false }}
