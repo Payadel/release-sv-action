@@ -53,13 +53,13 @@ async function main(): Promise<void> {
     await setGitConfigs(gitEmail, gitUsername)
       .then(() => installStandardVersionPackage())
       .then(() => release(inputVersion, skipChangelog))
-      .then(() => push())
       .then(() =>
         readVersion().then(version => core.setOutput("version", version))
       )
       .then(() =>
         createReleaseFile(releaseDirectory, releaseFilename, skipReleaseFile)
       )
+      .then(() => push())
       .then(() => createPr(createPrForBranchName, isTestMode));
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
