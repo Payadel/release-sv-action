@@ -8,7 +8,7 @@ export interface IInputs {
   skipChangelog: boolean;
   skipReleaseFile: boolean;
   releaseDirectory: string;
-  releaseFilename: string;
+  releaseFileName: string;
   createPrForBranchName: string;
 }
 
@@ -23,7 +23,7 @@ export function GetInputs(): Promise<IInputs> {
         skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
         skipReleaseFile: getBooleanInputOrDefault("skip-release-file", true),
         releaseDirectory: getInputOrDefault("release-directory", "."),
-        releaseFilename: getInputOrDefault("release-file-name", "release"),
+        releaseFileName: getInputOrDefault("release-file-name", "release"),
         createPrForBranchName: getInputOrDefault("create-pr-for-branch", ""),
       };
       resolve(inputs);
