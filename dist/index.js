@@ -52,6 +52,7 @@ function main() {
             const gitUsername = (0, utility_1.getInputOrDefault)("git-user-name", "Github Action", isTestMode);
             const inputVersion = (0, utility_1.getInputOrDefault)("version", "", isTestMode);
             const skipChangelog = (0, utility_1.getBooleanInputOrDefault)("skip-changelog", true, isTestMode);
+            const skipReleaseFile = (0, utility_1.getBooleanInputOrDefault)("skip_release_file", true, isTestMode);
             const releaseDirectory = (0, utility_1.getInputOrDefault)("release_directory", ".", isTestMode);
             const releaseFilename = (0, utility_1.getInputOrDefault)("release_file_name", "release", isTestMode);
             const createPrForBranchName = (0, utility_1.getInputOrDefault)("create_pr_for_branch", "", isTestMode);
@@ -60,7 +61,7 @@ function main() {
                 .then(() => release(inputVersion, skipChangelog))
                 .then(() => push())
                 .then(() => readVersion().then(version => core.setOutput("version", version)))
-                .then(() => createReleaseFile(releaseDirectory, releaseFilename))
+                .then(() => createReleaseFile(releaseDirectory, releaseFilename, skipReleaseFile))
                 .then(() => (0, prHelper_1.createPr)(createPrForBranchName, isTestMode));
         }
         catch (error) {
@@ -116,8 +117,12 @@ function readVersion() {
         });
     });
 }
-function createReleaseFile(directory, filename) {
+function createReleaseFile(directory, filename, skipReleaseFile) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (skipReleaseFile) {
+            core.info("Skip release file requested so skipping create release file.");
+            return Promise.resolve(null);
+        }
         core.info("Create release file...");
         return (0, utility_1.execBashCommand)(`(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${filename}.zip .)`);
     });
