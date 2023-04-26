@@ -1,6 +1,6 @@
 {
   "name": "create-release",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Create release base standard-version package",
   "main": "lib/main.js",
   "scripts": {
