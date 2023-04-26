@@ -4,6 +4,7 @@
   "description": "Create release base standard-version package",
   "main": "lib/main.js",
   "scripts": {
+    "ins": "npm install",
     "build": "tsc",
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
@@ -11,7 +12,7 @@
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest --passWithNoTests",
     "coverage": "jest --coverage",
-    "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
+    "all": "npm run ins && npm run build && npm run format && npm run lint && npm run package && npm test",
     "actions:watch": "gh run watch && notify-send \"run is done!\"",
     "actions:changelog": "gh workflow run Changelog --ref dev -f version=''",
     "actions:release": "gh workflow run Release --ref dev -f version=''",
