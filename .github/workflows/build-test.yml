@@ -35,20 +35,44 @@ jobs:
           is-test-mode: true
 
       - name: Validate default values
-        run: |
-          cd .github/workflows
-          if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
-          chmod +x assert.sh
-          ./assert.sh "${{ steps.release_without_inputs.outputs.isTestMode }}" "true" "is-test-mode"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.gitEmail }}" "github-action@github.com" "git-email"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.gitUsername }}" "Github Action" "git-user-name"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.skipChangelog }}" "true" "skip-changelog"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.skipReleaseFile }}" "true" "skip-release-file"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseDirectory }}" "." "release-directory"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.createPrForBranchName }}" "" "create-pr-for-branch"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseCommand }}" "standard-version --skip.changelog" "releaseCommand"
-          ./assert.sh "${{ steps.release_without_inputs.outputs.releaseFileName }}" "" "release-file-name"
-          
+        uses: Payadel/assert@v1.0.0
+        with:
+          fail-fast: false
+          verbose: true
+          inputs: |
+            - name: is test mode
+              type: True
+              input: ${{ steps.release_without_inputs.outputs.isTestMode }}
+            - name: git email
+              type: Equals
+              expected: github-action@github.com
+              actual: ${{ steps.release_without_inputs.outputs.gitEmail }}
+            - name: gitusername
+              type: Equals
+              expected: Github Action
+              actual: ${{ steps.release_without_inputs.outputs.gitUsername }}
+            - name: skip changelog
+              type: True
+              input: ${{ steps.release_without_inputs.outputs.skipChangelog }}
+            - name: skip release file
+              type: True
+              input: ${{ steps.release_without_inputs.outputs.skipReleaseFile }}
+            - name: release directory
+              type: Equals
+              expected: .
+              actual: ${{ steps.release_without_inputs.outputs.releaseDirectory }}
+            - name: create pr for branch
+              type: Equals
+              expected: ''
+              actual: ${{ steps.release_without_inputs.outputs.createPrForBranchName }}
+            - name: release command
+              type: Equals
+              expected: standard-version --skip.changelog
+              actual: ${{ steps.release_without_inputs.outputs.releaseCommand }}
+            - name: release file name
+              type: Equals
+              expected: standard-version --skip.changelog
+              actual: ${{ steps.release_without_inputs.outputs.releaseFileName }}
 
       - name: Run action with inputs
         uses: ./
@@ -65,16 +89,45 @@ jobs:
           create-pr-for-branch: branch-name
 
       - name: Validate with input
-        run: |
-          cd .github/workflows
-          if [ ! -f assert.sh ]; then echo "Can not find assert.sh"; exit 1; fi
-          chmod +x assert.sh
-          ./assert.sh "${{ steps.release_with_inputs.outputs.gitEmail }}" "fake@fake.com" "git-email"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.gitUsername }}" "fake name" "git-user-name"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.skipChangelog }}" "false" "skip-changelog"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.skipReleaseFile }}" "false" "skip-release-file"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.releaseDirectory }}" "." "release-directory"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.createPrForBranchName }}" "branch-name" "create-pr-for-branch"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.version }}" "100.100.100" "version"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.releaseCommand }}" "standard-version --release-as 100.100.100" "releaseCommand"
-          ./assert.sh "${{ steps.release_with_inputs.outputs.releaseFileName }}" "fake-name.zip" "release-file-name"
+        uses: Payadel/assert@v1.0.0
+        with:
+          fail-fast: false
+          verbose: true
+          inputs: |
+            - name: is test mode
+              type: True
+              input: ${{ steps.release_with_inputs.outputs.isTestMode }}
+            - name: git email
+              type: Equals
+              expected: fake@fake.com
+              actual: ${{ steps.release_with_inputs.outputs.gitEmail }}
+            - name: git user name
+              type: Equals
+              expected: fake name
+              actual: ${{ steps.release_with_inputs.outputs.gitUsername }}
+            - name: skip changelog
+              type: False
+              input: ${{ steps.release_with_inputs.outputs.skipChangelog }}
+            - name: skip release file
+              type: False
+              input: ${{ steps.release_with_inputs.outputs.skipReleaseFile }}
+            - name: release directory
+              type: Equals
+              expected: '.'
+              actual: ${{ steps.release_with_inputs.outputs.releaseDirectory }}
+            - name: create pr for branch
+              type: Equals
+              expected: 'branch name'
+              actual: ${{ steps.release_with_inputs.outputs.createPrForBranchName }}
+            - name: release command
+              type: Equals
+              expected: standard-version --release-as 100.100.100
+              actual: ${{ steps.release_with_inputs.outputs.releaseCommand }}
+            - name: release file name
+              type: Equals
+              expected: fake-name.zip
+              actual: ${{ steps.release_with_inputs.outputs.releaseFileName }}
+            - name: version
+              type: Equals
+              expected: 100.100.100
+              actual: ${{ steps.release_with_inputs.outputs.releaseFileName }}
