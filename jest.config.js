@@ -16,7 +16,7 @@ exports.default = {
   // Indicates whether the coverage information should be collected while executing the test
   collectCoverage: true,
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  // collectCoverageFrom: undefined,
+  // collectCoverageFrom: ["src/*.{js,jsx,ts}", "!src/main.ts"],
   // The directory where Jest should output its coverage files
   coverageDirectory: "coverage",
   // An array of regexp pattern strings used to skip coverage collection
@@ -33,7 +33,14 @@ exports.default = {
   //   "clover"
   // ],
   // An object that configures minimum threshold enforcement for coverage results
-  // coverageThreshold: undefined,
+  // coverageThreshold: {
+  //   global: {
+  //     branches: 100,
+  //     functions: 100,
+  //     lines: 100,
+  //     statements: 0,
+  //   },
+  // },
   // A path to a custom dependency extractor
   // dependencyExtractor: undefined,
   // Make calling deprecated APIs throw helpful error messages
