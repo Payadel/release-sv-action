@@ -40,39 +40,47 @@ jobs:
           fail-fast: false
           verbose: true
           inputs: |
-            - name: is test mode
-              type: True
+            - name: 'Is test mode'
+              type: 'True'
               input: ${{ steps.release_without_inputs.outputs.isTestMode }}
-            - name: git email
+            
+            - name: 'Git Email'
               type: Equals
-              expected: github-action@github.com
-              actual: ${{ steps.release_without_inputs.outputs.gitEmail }}
-            - name: gitusername
+              expected: 'github-action@github.com'
+              actual: "${{ steps.release_without_inputs.outputs.gitEmail }}"
+            
+            - name: 'Git Username'
               type: Equals
-              expected: Github Action
-              actual: ${{ steps.release_without_inputs.outputs.gitUsername }}
-            - name: skip changelog
-              type: True
+              expected: 'Github Action'
+              actual: "${{ steps.release_without_inputs.outputs.gitUsername }}"
+            
+            - name: 'skip changelog'
+              type: 'True'
               input: ${{ steps.release_without_inputs.outputs.skipChangelog }}
-            - name: skip release file
-              type: True
+            
+            - name: 'skip release file'
+              type: 'True'
               input: ${{ steps.release_without_inputs.outputs.skipReleaseFile }}
-            - name: release directory
+            
+            - name: 'release directory'
               type: Equals
-              expected: .
-              actual: ${{ steps.release_without_inputs.outputs.releaseDirectory }}
-            - name: create pr for branch
+              expected: '.'
+              actual: "${{ steps.release_without_inputs.outputs.releaseDirectory }}"
+            
+            - name: 'create pr for branch'
               type: Equals
               expected: ''
-              actual: ${{ steps.release_without_inputs.outputs.createPrForBranchName }}
-            - name: release command
+              actual: "${{ steps.release_without_inputs.outputs.createPrForBranchName }}"
+            
+            - name: 'release command'
               type: Equals
-              expected: standard-version --skip.changelog
-              actual: ${{ steps.release_without_inputs.outputs.releaseCommand }}
-            - name: release file name
+              expected: 'standard-version --skip.changelog'
+              actual: "${{ steps.release_without_inputs.outputs.releaseCommand }}"
+            
+            - name: 'release file name'
               type: Equals
-              expected: standard-version --skip.changelog
-              actual: ${{ steps.release_without_inputs.outputs.releaseFileName }}
+              expected: ''
+              actual: "${{ steps.release_without_inputs.outputs.releaseFileName }}"
 
       - name: Run action with inputs
         uses: ./
@@ -88,46 +96,55 @@ jobs:
           release-file-name: fake-name
           create-pr-for-branch: branch-name
 
-      - name: Validate with input
+      - name: Validate with inputs
         uses: Payadel/assert@v1.0.0
         with:
           fail-fast: false
           verbose: true
           inputs: |
-            - name: is test mode
-              type: True
+            - name: 'Is test mode'
+              type: 'True'
               input: ${{ steps.release_with_inputs.outputs.isTestMode }}
-            - name: git email
+
+            - name: 'Git Email'
               type: Equals
-              expected: fake@fake.com
-              actual: ${{ steps.release_with_inputs.outputs.gitEmail }}
-            - name: git user name
+              expected: 'fake@fake.com'
+              actual: "${{ steps.release_with_inputs.outputs.gitEmail }}"
+
+            - name: 'Git Username'
               type: Equals
-              expected: fake name
-              actual: ${{ steps.release_with_inputs.outputs.gitUsername }}
-            - name: skip changelog
-              type: False
+              expected: 'fake name'
+              actual: "${{ steps.release_with_inputs.outputs.gitUsername }}"
+
+            - name: 'skip changelog'
+              type: 'False'
               input: ${{ steps.release_with_inputs.outputs.skipChangelog }}
-            - name: skip release file
-              type: False
+
+            - name: 'skip release file'
+              type: 'False'
               input: ${{ steps.release_with_inputs.outputs.skipReleaseFile }}
-            - name: release directory
+
+            - name: 'release directory'
               type: Equals
               expected: '.'
-              actual: ${{ steps.release_with_inputs.outputs.releaseDirectory }}
-            - name: create pr for branch
+              actual: "${{ steps.release_with_inputs.outputs.releaseDirectory }}"
+
+            - name: 'create pr for branch'
               type: Equals
-              expected: 'branch name'
-              actual: ${{ steps.release_with_inputs.outputs.createPrForBranchName }}
-            - name: release command
+              expected: 'branch-name'
+              actual: "${{ steps.release_with_inputs.outputs.createPrForBranchName }}"
+
+            - name: 'release command'
               type: Equals
-              expected: standard-version --release-as 100.100.100
-              actual: ${{ steps.release_with_inputs.outputs.releaseCommand }}
-            - name: release file name
+              expected: 'standard-version --release-as 100.100.100'
+              actual: "${{ steps.release_with_inputs.outputs.releaseCommand }}"
+
+            - name: 'release file name'
               type: Equals
-              expected: fake-name.zip
-              actual: ${{ steps.release_with_inputs.outputs.releaseFileName }}
-            - name: version
+              expected: 'fake-name.zip'
+              actual: "${{ steps.release_with_inputs.outputs.releaseFileName }}"
+            
+            - name: 'version'
               type: Equals
-              expected: 100.100.100
-              actual: ${{ steps.release_with_inputs.outputs.releaseFileName }}
+              expected: '100.100.100'
+              actual: "${{ steps.release_with_inputs.outputs.version }}"
