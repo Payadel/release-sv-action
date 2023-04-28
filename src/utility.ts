@@ -7,12 +7,6 @@ export async function getCurrentBranchName(): Promise<string> {
         .then(result => result.stdout.trim());
 }
 
-export async function execBashCommand(
-    command: string
-): Promise<exec.ExecOutput> {
-    return exec.getExecOutput(`/bin/bash -c "${command}"`);
-}
-
 export function getInputOrDefault(
     name: string,
     default_value = "",
@@ -39,4 +33,24 @@ export function getBooleanInputOrDefault(
     throw new TypeError(
         `The value of ${name} is not valid. It must be either true or false but got ${input}`
     );
+}
+
+export function execBashCommand(
+    command: string,
+    errorMessage: string | null = null
+): Promise<exec.ExecOutput> {
+    command = command.replace(/"/g, "'");
+    return execCommand(`/bin/bash -c "${command}"`, errorMessage);
+}
+
+export function execCommand(
+    command: string,
+    errorMessage: string | null = null
+): Promise<exec.ExecOutput> {
+    return exec.getExecOutput(command).catch(error => {
+        const title = errorMessage || `Execute '${command}' failed.`;
+        const message =
+            error instanceof Error ? error.message : error.toString();
+        throw new Error(`${title}\n${message}`);
+    });
 }
