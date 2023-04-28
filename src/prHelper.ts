@@ -7,19 +7,12 @@ interface IPrData {
 }
 
 export async function createPullRequest(
-    createPrForBranchName: string,
-    isTestMode: boolean
+    createPrForBranchName: string
 ): Promise<exec.ExecOutput | null> {
     return new Promise<exec.ExecOutput | null>((resolve, reject) => {
         if (!createPrForBranchName) {
             core.info(
                 "No branch name provided so skipping pull request creation."
-            );
-            return resolve(null);
-        }
-        if (isTestMode) {
-            core.info(
-                "The test mode is enabled so skipping pull request creation."
             );
             return resolve(null);
         }

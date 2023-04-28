@@ -56,11 +56,7 @@ export function execCommand(
     });
 }
 
-export function push(isTestMode: boolean): Promise<exec.ExecOutput> {
-    if (isTestMode)
-        return execCommand("echo 'Test mode is enable so skipping push...'");
-
-    core.info("Push...");
+export function push(): Promise<exec.ExecOutput> {
     return getCurrentBranchName().then(currentBranchName =>
         execCommand(`git push --follow-tags origin ${currentBranchName}`)
     );
