@@ -10,7 +10,7 @@ export async function createPullRequest(
     createPrForBranchName: string,
     isTestMode: boolean
 ): Promise<exec.ExecOutput | null> {
-    return new Promise<exec.ExecOutput | null>(resolve => {
+    return new Promise<exec.ExecOutput | null>((resolve, reject) => {
         if (!createPrForBranchName) {
             core.info(
                 "No branch name provided so skipping pull request creation."
@@ -25,9 +25,12 @@ export async function createPullRequest(
         }
 
         core.info("Create pull request...");
-        return getCurrentBranchName().then(currentBranchName =>
-            createOrUpdatePr(currentBranchName, currentBranchName)
-        );
+        return getCurrentBranchName()
+            .then(currentBranchName =>
+                createOrUpdatePr(currentBranchName, currentBranchName)
+            )
+            .then(resolve)
+            .catch(reject);
     });
 }
 

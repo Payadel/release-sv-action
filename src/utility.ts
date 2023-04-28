@@ -1,7 +1,7 @@
 import * as exec from "@actions/exec";
 import * as core from "@actions/core";
 
-export async function getCurrentBranchName(): Promise<string> {
+export function getCurrentBranchName(): Promise<string> {
     return execCommand(
         "git rev-parse --abbrev-ref HEAD",
         "Detect current branch name failed."
@@ -48,7 +48,7 @@ export function execCommand(
     command: string,
     errorMessage: string | null = null
 ): Promise<exec.ExecOutput> {
-    return execCommand(command).catch(error => {
+    return exec.getExecOutput(command).catch(error => {
         const title = errorMessage || `Execute '${command}' failed.`;
         const message =
             error instanceof Error ? error.message : error.toString();
