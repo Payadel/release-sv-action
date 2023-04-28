@@ -13,20 +13,31 @@ export interface IInputs {
     createPrForBranchName: string;
 }
 
-export function GetInputs(): IInputs {
-    const version = getInputOrDefault("version", "", true, false);
-    if (version && !isVersionValid(version))
-        throw new Error("The input version is not valid.");
+export function getInputs(): Promise<IInputs> {
+    return new Promise<IInputs>((resolve, reject) => {
+        const version = getInputOrDefault("version", "", true, false);
+        if (version && !isVersionValid(version))
+            return reject(new Error("The input version is not valid."));
 
-    return {
-        version,
-        isTestMode: getBooleanInputOrDefault("is-test-mode", false),
-        gitEmail: getInputOrDefault("git-email", "github-action@github.com"),
-        gitUsername: getInputOrDefault("git-user-name", "Github Action"),
-        skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
-        skipReleaseFile: getBooleanInputOrDefault("skip-release-file", true),
-        releaseDirectory: getInputOrDefault("release-directory", "."),
-        releaseFileName: getInputOrDefault("release-file-name", "release"),
-        createPrForBranchName: getInputOrDefault("create-pr-for-branch", ""),
-    };
+        return resolve({
+            version,
+            isTestMode: getBooleanInputOrDefault("is-test-mode", false),
+            gitEmail: getInputOrDefault(
+                "git-email",
+                "github-action@github.com"
+            ),
+            gitUsername: getInputOrDefault("git-user-name", "Github Action"),
+            skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
+            skipReleaseFile: getBooleanInputOrDefault(
+                "skip-release-file",
+                true
+            ),
+            releaseDirectory: getInputOrDefault("release-directory", "."),
+            releaseFileName: getInputOrDefault("release-file-name", "release"),
+            createPrForBranchName: getInputOrDefault(
+                "create-pr-for-branch",
+                ""
+            ),
+        });
+    });
 }
