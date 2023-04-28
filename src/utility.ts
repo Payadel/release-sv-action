@@ -56,13 +56,6 @@ export function execCommand(
     });
 }
 
-export function readVersion(): Promise<string> {
-    return execCommand(
-        "node -p -e \"require('./package.json').version\"",
-        "Read version from package.json failed."
-    ).then(result => result.stdout.trim());
-}
-
 export function push(isTestMode: boolean): Promise<exec.ExecOutput> {
     if (isTestMode)
         return execCommand("echo 'Test mode is enable so skipping push...'");
