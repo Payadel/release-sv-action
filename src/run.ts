@@ -1,42 +1,11 @@
 import * as core from "@actions/core";
-import { GetInputs } from "./inputs";
-import { execBashCommand, execCommand, push, readVersion } from "./utility";
+import { getInputs } from "./inputs";
+import { createReleaseFile, execCommand, operateWhen, push } from "./utility";
 import { createPullRequest } from "./prHelper";
 import * as exec from "@actions/exec";
 
 const run = (): Promise<void> =>
-    GetInputs()
-        .then(inputs => {
-            return setGitConfigs(inputs.gitEmail, inputs.gitUsername)
-                .then(() => installStandardVersionPackage())
-                .then(() =>
-                    release(
-                        inputs.version,
-                        inputs.skipChangelog,
-                        inputs.isTestMode
-                    )
-                )
-                .then(() =>
-                    readVersion().then(version =>
-                        core.setOutput("version", version)
-                    )
-                )
-                .then(() =>
-                    createReleaseFile(
-                        inputs.releaseDirectory,
-                        inputs.releaseFileName,
-                        inputs.skipReleaseFile
-                    )
-                )
-                .then(() => push(inputs.isTestMode))
-                .then(() =>
-                    createPullRequest(
-                        inputs.createPrForBranchName,
-                        inputs.isTestMode
-                    )
-                )
-                .then(() => Promise.resolve());
-        })
+    mainProcess()
         .then(() => core.info("Operation completed successfully."))
         .catch(error => {
             core.error("Operation failed.");
@@ -47,56 +16,63 @@ const run = (): Promise<void> =>
 
 export default run;
 
+function mainProcess(): Promise<void> {
+    return getInputs().then(inputs => {
+        return installStandardVersionPackage()
+            .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
+            .then(() => svRelease(inputs.version, inputs.skipChangelog))
+            .then(() =>
+                operateWhen(
+                    !inputs.skipReleaseFile,
+                    () =>
+                        createReleaseFile(
+                            inputs.releaseDirectory,
+                            inputs.releaseFileName
+                        ),
+                    "Skip release file is requested so skip create release file."
+                )
+            )
+            .then(() =>
+                operateWhen(
+                    !inputs.isTestMode,
+                    push,
+                    "The test mode is enabled so skipping push."
+                )
+            )
+            .then(() => {
+                operateWhen(
+                    !inputs.isTestMode,
+                    () => createPullRequest(inputs.createPrForBranchName),
+                    "The test mode is enabled so skipping pull request creation."
+                );
+            })
+            .then(() => Promise.resolve());
+    });
+}
+
 function setGitConfigs(
     email: string,
     username: string
 ): Promise<exec.ExecOutput> {
-    core.info("Config git...");
-
-    return exec
-        .getExecOutput(`git config --global user.email "${email}"`)
-        .then(() => execCommand(`git config --global user.name "${username}"`));
+    return execCommand(`git config --global user.email "${email}"`).then(() =>
+        execCommand(`git config --global user.name "${username}"`)
+    );
 }
 
 function installStandardVersionPackage(): Promise<exec.ExecOutput> {
-    core.info("Install standard-version npm package...");
-
-    return execCommand("npm install -g standard-version");
+    return execCommand(
+        "npm install -g standard-version",
+        "Can not install standard version npm package."
+    );
 }
 
-function release(
+function svRelease(
     version: string,
-    skipChangelog: boolean,
-    isTestMode: boolean
+    skipChangelog: boolean
 ): Promise<exec.ExecOutput> {
-    core.info("Create release...");
     let releaseCommand = "standard-version";
     if (version) releaseCommand += ` --release-as ${version}`;
     if (skipChangelog) releaseCommand += " --skip.changelog";
 
-    core.info(`Command: ${releaseCommand}`);
-    if (isTestMode) core.setOutput("releaseCommand", releaseCommand);
-
     return execCommand(releaseCommand);
-}
-
-function createReleaseFile(
-    directory: string,
-    filename: string,
-    skipReleaseFile: boolean
-): Promise<exec.ExecOutput | null> {
-    if (skipReleaseFile) {
-        core.info(
-            "Skip release file requested so skipping create release file."
-        );
-        core.setOutput("releaseFileName", "");
-        return Promise.resolve(null);
-    }
-
-    core.info("Create release file...");
-    const releaseFileName = `${filename}.zip`;
-    core.setOutput("releaseFileName", releaseFileName);
-    return execBashCommand(
-        `(cd ${directory}; zip -r $(git rev-parse --show-toplevel)/${releaseFileName} .)`
-    );
 }

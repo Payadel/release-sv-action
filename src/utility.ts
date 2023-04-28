@@ -1,5 +1,6 @@
 import * as exec from "@actions/exec";
 import * as core from "@actions/core";
+import path from "path";
 
 export function getCurrentBranchName(): Promise<string> {
     return execCommand(
@@ -60,4 +61,35 @@ export function push(): Promise<exec.ExecOutput> {
     return getCurrentBranchName().then(currentBranchName =>
         execCommand(`git push --follow-tags origin ${currentBranchName}`)
     );
+}
+
+export function createReleaseFile(
+    releaseDir: string,
+    releaseFilename: string
+): Promise<exec.ExecOutput> {
+    if (!releaseFilename.endsWith(".zip")) releaseFilename += ".zip";
+
+    return getGitRootDir().then(rootDir => {
+        const outputPath = path.join(rootDir, releaseFilename);
+        return execBashCommand(
+            `(cd ${releaseDir}; zip -r ${outputPath} .)`,
+            `Can not create release file from ${releaseDir} to ${outputPath}'.`
+        );
+    });
+}
+
+function getGitRootDir(): Promise<string> {
+    return execCommand(
+        "git rev-parse --show-toplevel",
+        "find git root directory failed."
+    ).then(output => output.stdout.trim());
+}
+
+export function operateWhen(
+    condition: boolean,
+    func: () => any,
+    elseMessage: string | null = null
+): any {
+    if (condition) return func();
+    else if (elseMessage) core.info(elseMessage);
 }
