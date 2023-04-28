@@ -48,10 +48,27 @@ export function execCommand(
     command: string,
     errorMessage: string | null = null
 ): Promise<exec.ExecOutput> {
-    return exec.getExecOutput(command).catch(error => {
+    return execCommand(command).catch(error => {
         const title = errorMessage || `Execute '${command}' failed.`;
         const message =
             error instanceof Error ? error.message : error.toString();
         throw new Error(`${title}\n${message}`);
     });
+}
+
+export function readVersion(): Promise<string> {
+    return execCommand(
+        "node -p -e \"require('./package.json').version\"",
+        "Read version from package.json failed."
+    ).then(result => result.stdout.trim());
+}
+
+export function push(isTestMode: boolean): Promise<exec.ExecOutput> {
+    if (isTestMode)
+        return execCommand("echo 'Test mode is enable so skipping push...'");
+
+    core.info("Push...");
+    return getCurrentBranchName().then(currentBranchName =>
+        execCommand(`git push --follow-tags origin ${currentBranchName}`)
+    );
 }
