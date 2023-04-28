@@ -1,64 +1,76 @@
 import * as exec from "@actions/exec";
 import * as core from "@actions/core";
-import { getCurrentBranchName } from "./utility";
+import { execCommand, getCurrentBranchName } from "./utility";
 
 interface IPrData {
     number: number;
 }
 
-export async function createPr(
+export async function createPullRequest(
     createPrForBranchName: string,
     isTestMode: boolean
 ): Promise<exec.ExecOutput | null> {
-    if (!createPrForBranchName) return Promise.resolve(null);
-    if (isTestMode) {
-        core.info("Test mode is enable so skipping Create PR.");
-        return Promise.resolve(null);
-    }
+    return new Promise<exec.ExecOutput | null>(resolve => {
+        if (!createPrForBranchName) {
+            core.info(
+                "No branch name provided so skipping pull request creation."
+            );
+            return resolve(null);
+        }
+        if (isTestMode) {
+            core.info(
+                "The test mode is enabled so skipping pull request creation."
+            );
+            return resolve(null);
+        }
 
-    core.info("Create pull request...");
-    return getCurrentBranchName().then(async currentBranchName =>
-        exec
-            .getExecOutput(
-                `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`
-            )
-            .catch(e => {
-                return findActivePr(
-                    createPrForBranchName,
-                    currentBranchName
-                ).then(prNumber => {
-                    if (!prNumber) {
-                        core.info(
-                            `Can not create pull request: ${e.toString()}`
-                        );
-                        core.info(
-                            `Can not find active pull request to update.`
-                        );
-                        return e;
-                    }
-                    core.info(
-                        "Can not create pull request because it is exist. Try update it."
+        core.info("Create pull request...");
+        return getCurrentBranchName().then(currentBranchName =>
+            createOrUpdatePr(currentBranchName, currentBranchName)
+        );
+    });
+}
+
+function createOrUpdatePr(
+    createPrForBranchName: string,
+    currentBranchName: string
+): Promise<exec.ExecOutput> {
+    return execCommand(
+        `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`,
+        `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`
+    ).catch(e =>
+        tryFindActivePr(createPrForBranchName, currentBranchName).then(
+            prNumber => {
+                if (!prNumber) {
+                    throw new Error(
+                        `Can not create pull request and can not find any active PR to update.\n${e.toString()}`
                     );
-                    return updatePr(prNumber);
-                });
-            })
+                }
+
+                core.info(
+                    "Can not create pull request because it is exist. Try update it."
+                );
+                return updatePr(prNumber);
+            }
+        )
     );
 }
 
-async function updatePr(prNumber: string): Promise<exec.ExecOutput> {
-    return exec.getExecOutput(
-        `gh pr edit ${prNumber} --body-file CHANGELOG.md`
+function updatePr(prNumber: string): Promise<exec.ExecOutput> {
+    return execCommand(
+        `gh pr edit ${prNumber} --body-file CHANGELOG.md`,
+        `Update pull request with '${prNumber}' failed.`
     );
 }
 
-async function findActivePr(
+function tryFindActivePr(
     targetBranchName: string,
     currentBranchName: string
 ): Promise<string | null> {
-    return exec
-        .getExecOutput(
-            `gh pr list -B ${targetBranchName} -H ${currentBranchName} --state open --json number`
-        )
+    return execCommand(
+        `gh pr list -B ${targetBranchName} -H ${currentBranchName} --state open --json number`,
+        `Trying to find active PR for ${targetBranchName} from ${currentBranchName} failed.`
+    )
         .then(result => JSON.parse(result.stdout))
         .then((json: IPrData[]) => {
             switch (json.length) {

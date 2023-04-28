@@ -2,9 +2,10 @@ import * as exec from "@actions/exec";
 import * as core from "@actions/core";
 
 export async function getCurrentBranchName(): Promise<string> {
-    return exec
-        .getExecOutput("git rev-parse --abbrev-ref HEAD")
-        .then(result => result.stdout.trim());
+    return execCommand(
+        "git rev-parse --abbrev-ref HEAD",
+        "Detect current branch name failed."
+    ).then(result => result.stdout.trim());
 }
 
 export function getInputOrDefault(
