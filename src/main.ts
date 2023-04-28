@@ -1,14 +1,12 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import { execBashCommand, getCurrentBranchName } from "./utility";
-import { createPr } from "./prHelper";
-import { exportInputsInTestMode, GetInputs } from "./inputs";
+import { createPullRequest } from "./prHelper";
+import { GetInputs } from "./inputs";
 
 async function main(): Promise<void> {
     try {
         await GetInputs().then(inputs => {
-            exportInputsInTestMode(inputs);
-
             return setGitConfigs(inputs.gitEmail, inputs.gitUsername)
                 .then(() => installStandardVersionPackage())
                 .then(() =>
@@ -32,7 +30,10 @@ async function main(): Promise<void> {
                 )
                 .then(() => push(inputs.isTestMode))
                 .then(() =>
-                    createPr(inputs.createPrForBranchName, inputs.isTestMode)
+                    createPullRequest(
+                        inputs.createPrForBranchName,
+                        inputs.isTestMode
+                    )
                 );
         });
     } catch (error) {
