@@ -14,7 +14,7 @@ inputs:
     default: 'Github Action'
     required: false
   generate-changelog:
-    description: 'values: always, never, auto'
+    description: 'values: always, never, auto (Default: auto)'
     default: "auto"
     required: false
   skip-release-file:
@@ -26,7 +26,7 @@ inputs:
     default: "release"
     required: false
   release-directory:
-    description: 'Where are the release files?. Default: .'
+    description: 'Where are the release files?. Default: "."'
     default: '.'
     required: false
   create-pr-for-branch:
@@ -39,21 +39,21 @@ inputs:
     default: 'false'
   changelog-version-regex:
     description: 'The regex with which we find the version lines in the changelog file.'
-    default: '[#]+[ ]+((\[[^\]]+\]\([^)]+\))|[^ ]+)[ ]+\([^)]+\)'
+    default: '#+[ ]+((\[[^\]]+\]\([^)]+\))|[^ ]+)[ ]+\([^)]+\)'
     required: false
   version:
-    description: 'Release version. Leave empty for auto generate. Default: ""'
+    description: 'Release version. Leave empty for auto detection. Default: ""'
     default: ''
     required: false
   version-regex:
     description: 'The regex that uses to validate versions'
     default: '/^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
   ignore-same-version-error:
-    description: 'ignore the same version error or not?'
+    description: 'ignore the same version error or not? Default: false'
     required: false
     default: 'false'
   ignore-less-version-error:
-    description: 'ignore the less version error or not?'
+    description: 'ignore the less version error or not? Default: false'
     required: false
     default: 'false'
 outputs:
