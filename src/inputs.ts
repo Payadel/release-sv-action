@@ -1,9 +1,6 @@
 import { getBooleanInputOrDefault, getInputOrDefault } from "./utility";
 import { readVersion, versionMustValid } from "./version";
-import {
-    DEFAULT_CHANGELOG_VERSION_REGEX,
-    SEMANTIC_VERSION_REGEX,
-} from "./configs";
+import { DEFAULT_INPUTS } from "./configs";
 
 export interface IInputs {
     isTestMode: boolean;
@@ -15,11 +12,11 @@ export interface IInputs {
     ignoreSameVersionError: boolean;
     ignoreLessVersionError: boolean;
     generateChangelog: GenerateChangelogOptions;
+    changelogVersionRegex: RegExp;
     skipReleaseFile: boolean;
     releaseDirectory: string;
     releaseFileName: string;
     createPrForBranchName: string;
-    changelogVersionRegex: RegExp;
 }
 
 export type GenerateChangelogOptions = "always" | "never" | "auto";
@@ -27,18 +24,24 @@ export type GenerateChangelogOptions = "always" | "never" | "auto";
 export function getInputs(): Promise<IInputs> {
     return new Promise<IInputs>(resolve => {
         const versionRegex = new RegExp(
-            getInputOrDefault("version-regex", null) ?? SEMANTIC_VERSION_REGEX
+            getInputOrDefault("version-regex", null) ??
+                DEFAULT_INPUTS.versionRegex
         );
         const ignoreSameVersionError = getBooleanInputOrDefault(
             "ignore-same-version-error",
-            false
+            DEFAULT_INPUTS.ignoreSameVersionError
         );
         const ignoreLessVersionError = getBooleanInputOrDefault(
             "ignore-less-version-error",
-            false
+            DEFAULT_INPUTS.ignoreLessVersionError
         );
         return readVersion("package.json").then(currentVersion => {
-            const inputVersion = getInputOrDefault("version", "", true, false)!;
+            const inputVersion = getInputOrDefault(
+                "version",
+                DEFAULT_INPUTS.inputVersion,
+                true,
+                false
+            )!;
             if (inputVersion) {
                 versionMustValid(
                     inputVersion,
@@ -56,31 +59,34 @@ export function getInputs(): Promise<IInputs> {
                 ignoreLessVersionError,
                 ignoreSameVersionError,
                 generateChangelog: getGenerateChangelog(),
-                isTestMode: getBooleanInputOrDefault("is-test-mode", false),
+                isTestMode: getBooleanInputOrDefault(
+                    "is-test-mode",
+                    DEFAULT_INPUTS.isTestMode
+                ),
                 gitEmail: getInputOrDefault(
                     "git-email",
-                    "github-action@github.com"
+                    DEFAULT_INPUTS.gitEmail
                 )!,
                 gitUsername: getInputOrDefault(
                     "git-user-name",
-                    "Github Action"
+                    DEFAULT_INPUTS.gitUsername
                 )!,
                 skipReleaseFile: getBooleanInputOrDefault(
                     "skip-release-file",
-                    true
+                    DEFAULT_INPUTS.skipReleaseFile
                 ),
                 releaseDirectory: getInputOrDefault("release-directory", ".")!,
                 releaseFileName: getInputOrDefault(
                     "release-file-name",
-                    "release"
+                    DEFAULT_INPUTS.releaseFileName
                 )!,
                 createPrForBranchName: getInputOrDefault(
                     "create-pr-for-branch",
-                    ""
+                    DEFAULT_INPUTS.createPrForBranchName
                 )!,
                 changelogVersionRegex: new RegExp(
                     getInputOrDefault("changelog-version-regex", null) ??
-                        DEFAULT_CHANGELOG_VERSION_REGEX
+                        DEFAULT_INPUTS.changelogVersionRegex
                 ),
             });
         });
