@@ -111,17 +111,6 @@ export function installStandardVersionPackage(): Promise<exec.ExecOutput> {
     );
 }
 
-export function svRelease(
-    version: string,
-    skipChangelog: boolean
-): Promise<exec.ExecOutput> {
-    let releaseCommand = "standard-version";
-    if (version) releaseCommand += ` --release-as ${version}`;
-    if (skipChangelog) releaseCommand += " --skip.changelog";
-
-    return execCommand(releaseCommand);
-}
-
 export function readFile(fileName: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         if (!fs.existsSync(fileName)) {
@@ -133,12 +122,11 @@ export function readFile(fileName: string): Promise<string> {
 
 export function readChangelogSection(
     changelog_file: string,
-    version: string,
-    pattern: RegExp
+    pattern: RegExp,
+    version?: string
 ): Promise<string> {
     return readFile(changelog_file).then(content => {
         const lines = content.split("\n");
-        version = version.toLowerCase();
 
         // Find headers
         const headerLines: { line: string; index: number }[] = [];
@@ -153,15 +141,20 @@ export function readChangelogSection(
             );
         }
 
-        // Find target header (with specific version)
-        const targetIndex = headerLines.findIndex(line =>
-            new RegExp(`\\b${version}\\b`).test(line.line)
-        );
-        if (targetIndex < 0) {
-            throw new Error(
-                `Can not find or detect any changelog with version ${version}.\n` +
-                    "You can update regex or report this issue with details."
+        let targetIndex: number;
+        if (version) {
+            // Find target header (with specific version)
+            targetIndex = headerLines.findIndex(line =>
+                new RegExp(`\\b${version.toLowerCase()}\\b`).test(line.line)
             );
+            if (targetIndex < 0) {
+                throw new Error(
+                    `Can not find or detect any changelog with version ${version}.\n` +
+                        "You can update regex or report this issue with details."
+                );
+            }
+        } else {
+            targetIndex = 0;
         }
 
         const startLineIndex = headerLines[targetIndex].index;

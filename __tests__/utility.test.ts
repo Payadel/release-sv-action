@@ -215,8 +215,8 @@ All notable changes to this project will be documented in this file. See [standa
 
         const section = await readChangelogSection(
             changelogFile,
-            version,
-            new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX)
+            new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX),
+            version
         );
 
         expect(section).toBe(expectedSection);
@@ -240,8 +240,8 @@ All notable changes to this project will be documented in this file. See [standa
 
         const section = await readChangelogSection(
             changelogFile,
-            version,
-            new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX)
+            new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX),
+            version
         );
 
         expect(section).toBe(expectedSection);
@@ -252,7 +252,7 @@ All notable changes to this project will be documented in this file. See [standa
         const pattern = /^\#\# \[(.*)\]/;
 
         await expect(
-            readChangelogSection(changelogFile, version, pattern)
+            readChangelogSection(changelogFile, pattern, version)
         ).rejects.toThrow(
             new RegExp("Can not find or detect any changelog header.")
         );
@@ -263,7 +263,7 @@ All notable changes to this project will be documented in this file. See [standa
         const pattern = new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX);
 
         await expect(
-            readChangelogSection(changelogFile, version, pattern)
+            readChangelogSection(changelogFile, pattern, version)
         ).rejects.toThrow(
             new RegExp(
                 "Can not find or detect any changelog with version 2.0.0."

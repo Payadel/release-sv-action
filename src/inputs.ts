@@ -14,13 +14,15 @@ export interface IInputs {
     versionRegex: RegExp;
     ignoreSameVersionError: boolean;
     ignoreLessVersionError: boolean;
-    skipChangelog: boolean;
+    generateChangelog: GenerateChangelogOptions;
     skipReleaseFile: boolean;
     releaseDirectory: string;
     releaseFileName: string;
     createPrForBranchName: string;
     changelogVersionRegex: RegExp;
 }
+
+export type GenerateChangelogOptions = "always" | "never" | "auto";
 
 export function getInputs(): Promise<IInputs> {
     return new Promise<IInputs>(resolve => {
@@ -53,6 +55,7 @@ export function getInputs(): Promise<IInputs> {
                 versionRegex,
                 ignoreLessVersionError,
                 ignoreSameVersionError,
+                generateChangelog: getGenerateChangelog(),
                 isTestMode: getBooleanInputOrDefault("is-test-mode", false),
                 gitEmail: getInputOrDefault(
                     "git-email",
@@ -62,7 +65,6 @@ export function getInputs(): Promise<IInputs> {
                     "git-user-name",
                     "Github Action"
                 )!,
-                skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
                 skipReleaseFile: getBooleanInputOrDefault(
                     "skip-release-file",
                     true
@@ -83,4 +85,19 @@ export function getInputs(): Promise<IInputs> {
             });
         });
     });
+}
+
+function getGenerateChangelog(): GenerateChangelogOptions {
+    const generateChangelog =
+        getInputOrDefault("generate-changelog", null)?.toLowerCase() ?? "auto";
+    switch (generateChangelog) {
+        case "auto":
+        case "always":
+        case "never":
+            return generateChangelog;
+        default:
+            throw new Error(
+                `The input generate-changelog '${generateChangelog}' is not valid. Supported values are auto, enable, disable`
+            );
+    }
 }

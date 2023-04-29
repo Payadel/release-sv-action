@@ -13,9 +13,9 @@ inputs:
     description: 'git user.name config for commit. Default: Github Action'
     default: 'Github Action'
     required: false
-  skip-changelog:
-    description: 'Skip generate changelog file or not? Default: true'
-    default: "true"
+  generate-changelog:
+    description: 'values: always, never, auto'
+    default: "auto"
     required: false
   skip-release-file:
     description: 'Skip create release file or not? Default: true'
