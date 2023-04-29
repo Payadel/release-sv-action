@@ -61,7 +61,7 @@ outputs:
     description: 'Release version'
   pull-request-url:
     description: 'The pull request link that has been created. ('' if not created)'
-  releaseFileName:
+  release-filename:
     description: 'Release file name'
   changelog:
     description: 'New changelog text'

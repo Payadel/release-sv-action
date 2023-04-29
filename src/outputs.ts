@@ -10,6 +10,6 @@ export interface IOutputs {
 export function setOutputs(data: IOutputs): void {
     core.setOutput("version", data.version);
     core.setOutput("pull-request-url", data.pullRequestUrl);
-    core.setOutput("releaseFileName", data.releaseFileName);
+    core.setOutput("release-filename", data.releaseFileName);
     core.setOutput("changelog", data.changelog);
 }
