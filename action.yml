@@ -23,7 +23,7 @@ inputs:
     required: false
   skip-release-file:
     description: 'Skip create release file or not? Default: true'
-    default: true
+    default: 'true'
     required: false
   release-file-name:
     description: 'Release file name. Default: release'
@@ -44,6 +44,8 @@ inputs:
 outputs:
   version:
     description: 'Release version'
+  pull-request-url:
+    description: 'The pull request link that has been created. ('' if not created)'
   releaseFileName:
     description: 'Release file name'
 

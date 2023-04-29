@@ -8,23 +8,19 @@ interface IPrData {
 
 export async function createPullRequest(
     createPrForBranchName: string
-): Promise<exec.ExecOutput | null> {
-    return new Promise<exec.ExecOutput | null>((resolve, reject) => {
-        if (!createPrForBranchName) {
-            core.info(
-                "No branch name provided so skipping pull request creation."
-            );
-            return resolve(null);
-        }
-
-        core.info("Create pull request...");
-        return getCurrentBranchName()
-            .then(currentBranchName =>
-                createOrUpdatePr(currentBranchName, currentBranchName)
-            )
-            .then(resolve)
-            .catch(reject);
-    });
+): Promise<string> {
+    return getCurrentBranchName()
+        .then(currentBranchName =>
+            createOrUpdatePr(createPrForBranchName, currentBranchName)
+        )
+        .then(output => {
+            const link = getPrLink(output.stdout);
+            if (!link)
+                throw new Error(
+                    `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`
+                );
+            return link;
+        });
 }
 
 function createOrUpdatePr(
@@ -50,6 +46,12 @@ function createOrUpdatePr(
             }
         )
     );
+}
+
+function getPrLink(str: string): string | null {
+    const regex = /(https*:\/\/)?github\.com\/\S+\/\S+\/pull\/\d+/;
+    const urlMatch = str.match(regex);
+    return urlMatch ? urlMatch[0] : null;
 }
 
 function updatePr(prNumber: string): Promise<exec.ExecOutput> {
