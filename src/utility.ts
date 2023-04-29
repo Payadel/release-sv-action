@@ -66,7 +66,7 @@ export function push(): Promise<exec.ExecOutput> {
 export function createReleaseFile(
     releaseDir: string,
     releaseFilename: string
-): Promise<exec.ExecOutput> {
+): Promise<string> {
     if (!releaseFilename.endsWith(".zip")) releaseFilename += ".zip";
 
     return getGitRootDir().then(rootDir => {
@@ -74,7 +74,7 @@ export function createReleaseFile(
         return execBashCommand(
             `(cd ${releaseDir}; zip -r ${outputPath} .)`,
             `Can not create release file from ${releaseDir} to ${outputPath}'.`
-        );
+        ).then(() => releaseFilename);
     });
 }
 
@@ -92,4 +92,31 @@ export function operateWhen(
 ): any {
     if (condition) return func();
     else if (elseMessage) core.info(elseMessage);
+}
+
+export function setGitConfigs(
+    email: string,
+    username: string
+): Promise<exec.ExecOutput> {
+    return execCommand(`git config --global user.email "${email}"`).then(() =>
+        execCommand(`git config --global user.name "${username}"`)
+    );
+}
+
+export function installStandardVersionPackage(): Promise<exec.ExecOutput> {
+    return execCommand(
+        "npm install -g standard-version",
+        "Can not install standard version npm package."
+    );
+}
+
+export function svRelease(
+    version: string,
+    skipChangelog: boolean
+): Promise<exec.ExecOutput> {
+    let releaseCommand = "standard-version";
+    if (version) releaseCommand += ` --release-as ${version}`;
+    if (skipChangelog) releaseCommand += " --skip.changelog";
+
+    return execCommand(releaseCommand);
 }

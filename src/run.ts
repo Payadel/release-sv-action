@@ -1,8 +1,14 @@
 import * as core from "@actions/core";
 import { getInputs } from "./inputs";
-import { createReleaseFile, execCommand, operateWhen, push } from "./utility";
+import {
+    createReleaseFile,
+    installStandardVersionPackage,
+    operateWhen,
+    push,
+    setGitConfigs,
+    svRelease,
+} from "./utility";
 import { createPullRequest } from "./prHelper";
-import * as exec from "@actions/exec";
 import { IOutputs, setOutputs } from "./outputs";
 
 const run = (): Promise<void> =>
@@ -24,14 +30,13 @@ function mainProcess(): Promise<void> {
             .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
             .then(() => svRelease(inputs.version, inputs.skipChangelog))
             .then(() =>
-                operateWhen(
-                    !inputs.skipReleaseFile,
-                    () =>
-                        createReleaseFile(
-                            inputs.releaseDirectory,
-                            inputs.releaseFileName
-                        ),
-                    "Skip release file is requested so skip create release file."
+                releaseFiles(
+                    inputs.skipReleaseFile,
+                    inputs.releaseDirectory,
+                    inputs.releaseFileName
+                ).then(
+                    releaseFileName =>
+                        (outputs.releaseFileName = releaseFileName ?? "")
                 )
             )
             .then(() =>
@@ -68,29 +73,16 @@ function createPr(
     return createPullRequest(createPrForBranchName);
 }
 
-function setGitConfigs(
-    email: string,
-    username: string
-): Promise<exec.ExecOutput> {
-    return execCommand(`git config --global user.email "${email}"`).then(() =>
-        execCommand(`git config --global user.name "${username}"`)
-    );
-}
-
-function installStandardVersionPackage(): Promise<exec.ExecOutput> {
-    return execCommand(
-        "npm install -g standard-version",
-        "Can not install standard version npm package."
-    );
-}
-
-function svRelease(
-    version: string,
-    skipChangelog: boolean
-): Promise<exec.ExecOutput> {
-    let releaseCommand = "standard-version";
-    if (version) releaseCommand += ` --release-as ${version}`;
-    if (skipChangelog) releaseCommand += " --skip.changelog";
-
-    return execCommand(releaseCommand);
+function releaseFiles(
+    skipReleaseFile: boolean,
+    releaseDirectory: string,
+    releaseFileName: string
+): Promise<string | null> {
+    if (skipReleaseFile) {
+        core.info(
+            "Skip release file is requested so skip create release file."
+        );
+        return Promise.resolve(null);
+    }
+    return createReleaseFile(releaseDirectory, releaseFileName);
 }
