@@ -1,18 +1,164 @@
 import * as core from "@actions/core";
 import { mockGetInput } from "./inputs.test";
 import {
+    createReleaseFile,
     execBashCommand,
     execCommand,
     getBooleanInputOrDefault,
+    getCurrentBranchName,
     getInputOrDefault,
+    push,
     readChangelogSection,
     readFile,
 } from "../src/utility";
 import fs, { mkdtempSync, writeFileSync } from "fs";
 import path, { join } from "path";
 import { DEFAULT_CHANGELOG_VERSION_REGEX } from "../src/configs";
+import * as exec from "@actions/exec";
 
 jest.mock("@actions/core");
+jest.mock("@actions/exec");
+
+interface IExpectedCommand {
+    command: string;
+    success: boolean;
+    resolve?: {
+        stdout: string;
+        stderr: string;
+        exitCode: number;
+    };
+    rejectMessage?: string;
+}
+
+function mockGetExecOutput(
+    command: string,
+    expectedCommands: IExpectedCommand[]
+): Promise<exec.ExecOutput> {
+    command = command.toLowerCase();
+    const target = expectedCommands.find(
+        input => input.command.toLowerCase() === command
+    );
+    if (!target) return Promise.reject(new Error("Command not found."));
+    return target.success
+        ? Promise.resolve<exec.ExecOutput>(target.resolve!)
+        : Promise.reject<exec.ExecOutput>(new Error(target.rejectMessage!));
+}
+
+describe("getCurrentBranchName", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    test("execute successful. expected return trim branch name", async () => {
+        const currentBranchName = "test-branch";
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "git rev-parse --abbrev-ref HEAD",
+                    success: true,
+                    resolve: {
+                        stdout: `    ${currentBranchName}     \n`,
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        const execOutput = await getCurrentBranchName();
+        expect(exec.getExecOutput).toHaveBeenCalledWith(
+            "git rev-parse --abbrev-ref HEAD"
+        );
+        expect(execOutput).toEqual(currentBranchName);
+    });
+
+    it("Throw error if execute fails", () => {
+        (exec.getExecOutput as jest.Mock).mockRejectedValueOnce(
+            new Error("Failed to execute command")
+        );
+
+        expect(getCurrentBranchName).rejects.toThrow(Error);
+    });
+});
+
+describe("push function", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    test("pushes to the current branch with follow tags option", async () => {
+        const currentBranchName = "test-branch";
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "git rev-parse --abbrev-ref HEAD",
+                    success: true,
+                    resolve: {
+                        stdout: `${currentBranchName}\n`,
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+                {
+                    command: "git push --follow-tags origin test-branch",
+                    success: true,
+                    resolve: {
+                        stdout: "Ok",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        const execOutput = await push();
+        expect(exec.getExecOutput).toHaveBeenCalledWith(
+            "git rev-parse --abbrev-ref HEAD"
+        );
+        expect(exec.getExecOutput).toHaveBeenCalledWith(
+            `git push --follow-tags origin ${currentBranchName}`
+        );
+        expect(execOutput).toEqual({
+            stdout: "Ok",
+            stderr: "",
+            exitCode: 0,
+        });
+    });
+
+    test("throws an error if getting the current branch name fails", async () => {
+        (exec.getExecOutput as jest.Mock).mockRejectedValueOnce(
+            new Error("Failed to execute command")
+        );
+        await expect(push()).rejects.toThrow(
+            "Detect current branch name failed.\nFailed to execute command"
+        );
+    });
+
+    test("throws an error if pushing to the remote fails", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "git rev-parse --abbrev-ref HEAD",
+                    success: true,
+                    resolve: {
+                        stdout: "test-branch\n",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+                {
+                    command: "git push --follow-tags origin test-branch",
+                    success: false,
+                    rejectMessage: "Push failed.",
+                },
+            ])
+        );
+
+        await expect(push()).rejects.toThrow(
+            "Execute 'git push --follow-tags origin test-branch' failed.\nPush failed."
+        );
+    });
+});
 
 describe("getInputOrDefault", () => {
     it("should return input data", () => {
@@ -299,6 +445,79 @@ describe("readFile", () => {
     test("give invalid path, should throw error", async () => {
         await expect(readFile("invalid path")).rejects.toThrow(
             "Can not find 'invalid path'."
+        );
+    });
+});
+
+describe("createReleaseFile", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    test("execute successful", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "git rev-parse --show-toplevel",
+                    success: true,
+                    resolve: {
+                        stdout: `path/to/git`,
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+                {
+                    command:
+                        '/bin/bash -c "(cd releasedir; zip -r path/to/git/releasefilename.zip .)"',
+                    success: true,
+                    resolve: {
+                        stdout: `OK`,
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        let releaseFilename = await createReleaseFile(
+            "releaseDir",
+            "releaseFileName"
+        );
+        expect(releaseFilename).toEqual("releaseFileName.zip");
+
+        releaseFilename = await createReleaseFile(
+            "releaseDir",
+            "releaseFileName.zip"
+        );
+        expect(releaseFilename).toEqual("releaseFileName.zip");
+    });
+
+    it("Throw error if execute fails", () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [])
+        );
+        expect(
+            createReleaseFile("releaseDir", "releaseFileName")
+        ).rejects.toThrow("ind git root directory failed.");
+
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "git rev-parse --show-toplevel",
+                    success: true,
+                    resolve: {
+                        stdout: `path/to/git`,
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        expect(
+            createReleaseFile("releaseDir", "releaseFileName")
+        ).rejects.toThrow(
+            "Can not create release file from 'releaseDir' to 'path/to/git/releaseFileName.zip'."
         );
     });
 });

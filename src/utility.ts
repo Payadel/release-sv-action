@@ -74,7 +74,7 @@ export function createReleaseFile(
         const outputPath = path.join(rootDir, releaseFilename);
         return execBashCommand(
             `(cd ${releaseDir}; zip -r ${outputPath} .)`,
-            `Can not create release file from ${releaseDir} to ${outputPath}'.`
+            `Can not create release file from '${releaseDir}' to '${outputPath}'.`
         ).then(() => releaseFilename);
     });
 }
@@ -84,15 +84,6 @@ function getGitRootDir(): Promise<string> {
         "git rev-parse --show-toplevel",
         "find git root directory failed."
     ).then(output => output.stdout.trim());
-}
-
-export function operateWhen(
-    condition: boolean,
-    func: () => any,
-    elseMessage: string | null = null
-): any {
-    if (condition) return func();
-    else if (elseMessage) core.info(elseMessage);
 }
 
 export function setGitConfigs(
