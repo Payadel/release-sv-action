@@ -39,7 +39,7 @@ inputs:
     default: 'false'
   changelog-version-regex:
     description: 'The regex with which we find the version lines in the changelog file.'
-    default: '/[#]+[ ]+((\\[[^\\]]+\\]\\([^)]+\\))|[^ ]+)[ ]+\([^)]+\)/'
+    default: '/#+[ ]+((\[[^\\]]+\]\([^)]+\))|[^ ]+)[ ]+\([^)]+\)/'
     required: false
   version:
     description: 'Release version. Leave empty for auto detection. Default: ""'
