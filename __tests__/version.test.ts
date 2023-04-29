@@ -1,39 +1,107 @@
-import { compareVersions, isVersionValid, readVersion } from "../src/version";
+import { compareVersions, readVersion, versionMustValid } from "../src/version";
 import fs, { mkdtempSync, writeFileSync } from "fs";
 import { join } from "path";
+import { DEFAULT_INPUTS } from "../src/configs";
 
-describe("isVersionValid", () => {
-    test("should return true for valid version strings", () => {
-        expect(isVersionValid("1")).toBe(true);
-        expect(isVersionValid("1.0")).toBe(true);
-        expect(isVersionValid("1.0.0")).toBe(true);
-        expect(isVersionValid("1.2.3-alpha")).toBe(true);
-        expect(isVersionValid("2.0.0-beta")).toBe(true);
-        expect(isVersionValid("3.1.4-rc.1.2.3")).toBe(true);
-        expect(isVersionValid("0.0.4")).toBe(true);
-        expect(isVersionValid("0.0.0")).toBe(true);
-        expect(isVersionValid("10.20.30")).toBe(true);
-        expect(isVersionValid("1.1.2-prerelease+meta")).toBe(true);
-        expect(isVersionValid("1.1.2+meta")).toBe(true);
-        expect(isVersionValid("1.0.0-alpha.beta")).toBe(true);
-        expect(isVersionValid("1.0.0-alpha.1")).toBe(true);
-        expect(isVersionValid("1.0.0-rc.1+build.1")).toBe(true);
-        expect(isVersionValid("10.2.3-DEV-SNAPSHOT")).toBe(true);
-        expect(isVersionValid("1.2.3-SNAPSHOT-123")).toBe(true);
-        expect(isVersionValid("2.0.0+build.1848")).toBe(true);
-        expect(isVersionValid("2.0.1-alpha.1227")).toBe(true);
-        expect(isVersionValid("1.2-SNAPSHOT")).toBe(true);
+describe("versionMustValid", () => {
+    it("give valid inputs. expect not throw exception", () => {
+        // Arrange
+        const inputVersion = "1.2.3";
+        const currentVersion = "1.0.0";
+        const versionRegex = /^\d+\.\d+\.\d+$/;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(inputVersion, currentVersion, versionRegex)
+        ).not.toThrow();
     });
 
-    test("should return false for invalid version strings", () => {
-        expect(isVersionValid("invalid")).toBe(false);
-        expect(isVersionValid("1.0.0.0")).toBe(false);
-        expect(isVersionValid("01.1.1")).toBe(false);
-        expect(isVersionValid("01")).toBe(false);
-        expect(isVersionValid("1.0.0-alpha_beta")).toBe(false);
-        expect(isVersionValid("1.2.3.DEV")).toBe(false);
-        expect(isVersionValid("1.2.3-0123")).toBe(false);
-        expect(isVersionValid("9.8.7-whatever+meta+meta")).toBe(false);
+    it("version not match with regex", () => {
+        // Arrange
+        const inputVersion = "abc";
+        const currentVersion = "1.0.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(inputVersion, currentVersion, versionRegex)
+        ).toThrow(
+            "The version format 'abc' is not valid. If you want, you can change 'version-regex'."
+        );
+    });
+
+    it("same input and current version without ignoreSameVersionError, expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.0.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreSameVersionError = false;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                versionRegex,
+                ignoreSameVersionError
+            )
+        ).toThrow(Error);
+    });
+
+    it("same input and current version with ignoreSameVersionError, expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.0.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreSameVersionError = true;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                versionRegex,
+                ignoreSameVersionError
+            )
+        ).not.toThrow();
+    });
+
+    it("Input version less than current version without ignoreLessVersionError. expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.1.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreLessVersionError = false;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                versionRegex,
+                false,
+                ignoreLessVersionError
+            )
+        ).toThrow(Error);
+    });
+
+    it("Input version less than current version with ignoreLessVersionError. expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.1.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreLessVersionError = true;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                versionRegex,
+                false,
+                ignoreLessVersionError
+            )
+        ).not.toThrow(Error);
     });
 });
 

@@ -7,8 +7,8 @@ export function versionMustValid(
     inputVersion: string,
     currentVersion: string,
     versionRegex: RegExp,
-    ignoreSameVersionError: boolean,
-    ignoreLessVersionError: boolean
+    ignoreSameVersionError = false,
+    ignoreLessVersionError = false
 ): void {
     if (!versionRegex.test(inputVersion))
         throw new Error(
