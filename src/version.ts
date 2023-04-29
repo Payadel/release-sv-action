@@ -3,11 +3,31 @@
 import fs from "fs";
 import { execCommand } from "./utility";
 
-const SEMANTIC_VERSION_REGEX =
-    /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
-
-export function isVersionValid(version: string): boolean {
-    return SEMANTIC_VERSION_REGEX.test(version);
+export function versionMustValid(
+    inputVersion: string,
+    currentVersion: string,
+    versionRegex: RegExp,
+    ignoreSameVersionError: boolean,
+    ignoreLessVersionError: boolean
+): void {
+    if (!versionRegex.test(inputVersion))
+        throw new Error(
+            `The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`
+        );
+    if (
+        !ignoreSameVersionError &&
+        inputVersion.toLowerCase() === currentVersion.toLowerCase()
+    )
+        throw new Error(
+            `The input version '${inputVersion}' is same to the current version. If you want, you can set 'ignore-same-version-error' to ignore this error."`
+        );
+    if (
+        !ignoreLessVersionError &&
+        compareVersions(inputVersion, currentVersion) < 0
+    )
+        throw new Error(
+            `The input version '${inputVersion}' is less than the current version '${currentVersion}'.  If you want, you can set 'ignore-less-version-error' to ignore this error.`
+        );
 }
 
 export function readVersion(package_path: string): Promise<string> {
@@ -32,7 +52,7 @@ export function readVersion(package_path: string): Promise<string> {
  *
  * @returns {number} Returns -1 if version1 is less than version2, 0 if they are equal, or 1 if version1 is greater than version2.
  */
-export function compareVersions(version1, version2): number {
+export function compareVersions(version1: string, version2: string): number {
     const v1 = version1.split(".");
     const v2 = version2.split(".");
 

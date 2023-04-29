@@ -28,7 +28,7 @@ async function assertValidVersion(inputVersion: string): Promise<void> {
             )
     );
     const inputs = await getInputs();
-    expect(inputs.version).toBe(inputVersion);
+    expect(inputs.inputVersion).toBe(inputVersion);
 }
 
 describe("version", () => {
@@ -69,7 +69,7 @@ describe("version", () => {
 
         const inputs = await getInputs();
 
-        expect(inputs.version).toBe(version);
+        expect(inputs.inputVersion).toBe(version);
     });
 });
 
@@ -126,7 +126,7 @@ describe("GetInputs", () => {
         expect(inputs.isTestMode).toBe(true);
         expect(inputs.gitEmail).toBe("test@example.com");
         expect(inputs.gitUsername).toBe("Test User");
-        expect(inputs.version).toBe("1.2.3");
+        expect(inputs.inputVersion).toBe("1.2.3");
         expect(inputs.skipChangelog).toBe(false);
         expect(inputs.skipReleaseFile).toBe(false);
         expect(inputs.releaseDirectory).toBe("dist");
@@ -145,7 +145,7 @@ describe("GetInputs", () => {
         expect(inputs.isTestMode).toBe(false);
         expect(inputs.gitEmail).toBe("github-action@github.com");
         expect(inputs.gitUsername).toBe("Github Action");
-        expect(inputs.version).toBe("");
+        expect(inputs.inputVersion).toBe("");
         expect(inputs.skipChangelog).toBe(true);
         expect(inputs.skipReleaseFile).toBe(true);
         expect(inputs.releaseDirectory).toBe(".");

@@ -30,7 +30,7 @@ function mainProcess(): Promise<void> {
         const outputs: IOutputs = {};
         return installStandardVersionPackage()
             .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
-            .then(() => svRelease(inputs.version, inputs.skipChangelog))
+            .then(() => svRelease(inputs.inputVersion, inputs.skipChangelog))
             .then(() =>
                 releaseFiles(
                     inputs.skipReleaseFile,

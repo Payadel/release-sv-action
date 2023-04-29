@@ -12,10 +12,10 @@ export function getCurrentBranchName(): Promise<string> {
 
 export function getInputOrDefault(
     name: string,
-    default_value = "",
+    default_value: string | null = "",
     trimWhitespace = true,
     required = false
-): string {
+): string | null {
     const input = core.getInput(name, {
         trimWhitespace,
         required,
@@ -29,8 +29,8 @@ export function getBooleanInputOrDefault(
     defaultValue: boolean,
     required = false
 ): boolean {
-    const input = getInputOrDefault(name, "", true, required).toLowerCase();
-    if (input === "") return defaultValue;
+    const input = getInputOrDefault(name, "", true, required)?.toLowerCase();
+    if (!input || input === "") return defaultValue;
     if (input === "true") return true;
     if (input === "false") return false;
     throw new TypeError(
