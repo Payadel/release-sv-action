@@ -5,6 +5,7 @@ import {
     installStandardVersionPackage,
     operateWhen,
     push,
+    readChangelogSection,
     setGitConfigs,
     svRelease,
 } from "./utility";
@@ -48,14 +49,30 @@ function mainProcess(): Promise<void> {
                 )
             )
             .then(() =>
-                createPr(inputs.createPrForBranchName, inputs.isTestMode).then(
-                    prLink => (outputs.pullRequestUrl = prLink ?? "")
-                )
+                readVersion("./package.json").then(version => {
+                    outputs.version = version;
+                    return version;
+                })
             )
-            .then(() =>
-                readVersion("./package.json").then(
-                    version => (outputs.version = version)
+            .then(newVersion =>
+                readChangelogSection(
+                    "CHANGELOG.md",
+                    newVersion,
+                    inputs.changelogVersionRegex
                 )
+                    .then(changelog => {
+                        outputs.changelog = changelog;
+                        return changelog;
+                    })
+                    .then(changelog =>
+                        createPr(
+                            inputs.createPrForBranchName,
+                            inputs.isTestMode,
+                            changelog
+                        ).then(
+                            prLink => (outputs.pullRequestUrl = prLink ?? "")
+                        )
+                    )
             )
             .then(() => setOutputs(outputs));
     });
@@ -63,7 +80,8 @@ function mainProcess(): Promise<void> {
 
 function createPr(
     createPrForBranchName: string,
-    isTestMode = false
+    isTestMode = false,
+    body: string
 ): Promise<string | null> {
     if (isTestMode) {
         core.info(
@@ -76,7 +94,7 @@ function createPr(
         return Promise.resolve(null);
     }
 
-    return createPullRequest(createPrForBranchName);
+    return createPullRequest(createPrForBranchName, body);
 }
 
 function releaseFiles(

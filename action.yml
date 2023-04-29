@@ -41,6 +41,10 @@ inputs:
     description: "Set the value 'true' for testing purposes. Default: false"
     required: false
     default: 'false'
+  changelog-version-regex:
+    description: 'The regex with which we find the version lines in the changelog file.'
+    default: ''
+    required: false
 outputs:
   version:
     description: 'Release version'
@@ -48,6 +52,8 @@ outputs:
     description: 'The pull request link that has been created. ('' if not created)'
   releaseFileName:
     description: 'Release file name'
+  changelog:
+    description: 'New changelog text'
 
 runs:
   using: 'node16'

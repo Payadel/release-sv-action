@@ -1,5 +1,6 @@
 import { getBooleanInputOrDefault, getInputOrDefault } from "./utility";
 import { isVersionValid } from "./version";
+import { DEFAULT_CHANGELOG_VERSION_REGEX } from "./configs";
 
 export interface IInputs {
     isTestMode: boolean;
@@ -11,6 +12,7 @@ export interface IInputs {
     releaseDirectory: string;
     releaseFileName: string;
     createPrForBranchName: string;
+    changelogVersionRegex: RegExp;
 }
 
 export function getInputs(): Promise<IInputs> {
@@ -37,6 +39,12 @@ export function getInputs(): Promise<IInputs> {
             createPrForBranchName: getInputOrDefault(
                 "create-pr-for-branch",
                 ""
+            ),
+            changelogVersionRegex: new RegExp(
+                getInputOrDefault(
+                    "changelog-version-regex",
+                    DEFAULT_CHANGELOG_VERSION_REGEX
+                )
             ),
         });
     });

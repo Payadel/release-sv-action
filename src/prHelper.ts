@@ -7,11 +7,12 @@ interface IPrData {
 }
 
 export async function createPullRequest(
-    createPrForBranchName: string
+    createPrForBranchName: string,
+    body: string
 ): Promise<string> {
     return getCurrentBranchName()
         .then(currentBranchName =>
-            createOrUpdatePr(createPrForBranchName, currentBranchName)
+            createOrUpdatePr(createPrForBranchName, currentBranchName, body)
         )
         .then(output => {
             const link = getPrLink(output.stdout);
@@ -25,10 +26,11 @@ export async function createPullRequest(
 
 function createOrUpdatePr(
     createPrForBranchName: string,
-    currentBranchName: string
+    currentBranchName: string,
+    body: string
 ): Promise<exec.ExecOutput> {
     return execCommand(
-        `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`,
+        `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
         `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`
     ).catch(e =>
         tryFindActivePr(createPrForBranchName, currentBranchName).then(
@@ -42,7 +44,7 @@ function createOrUpdatePr(
                 core.info(
                     "Can not create pull request because it is exist. Try update it."
                 );
-                return updatePr(prNumber);
+                return updatePr(prNumber, body);
             }
         )
     );
@@ -54,9 +56,9 @@ function getPrLink(str: string): string | null {
     return urlMatch ? urlMatch[0] : null;
 }
 
-function updatePr(prNumber: string): Promise<exec.ExecOutput> {
+function updatePr(prNumber: string, body: string): Promise<exec.ExecOutput> {
     return execCommand(
-        `gh pr edit ${prNumber} --body-file CHANGELOG.md`,
+        `gh pr edit ${prNumber} --body ${body}`,
         `Update pull request with '${prNumber}' failed.`
     );
 }
