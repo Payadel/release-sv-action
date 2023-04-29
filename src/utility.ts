@@ -34,7 +34,7 @@ export function getBooleanInputOrDefault(
     if (input === "true") return true;
     if (input === "false") return false;
     throw new TypeError(
-        `The value of ${name} is not valid. It must be either true or false but got ${input}`
+        `The value of '${name}' is not valid. It must be either true or false but got '${input}'.`
     );
 }
 

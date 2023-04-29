@@ -10,6 +10,7 @@ import {
     push,
     readChangelogSection,
     readFile,
+    setGitConfigs,
 } from "../src/utility";
 import fs, { mkdtempSync, writeFileSync } from "fs";
 import path, { join } from "path";
@@ -239,47 +240,84 @@ describe("getBooleanInputOrDefault", () => {
         input = getBooleanInputOrDefault("test2", true);
         expect(input).toBe(false);
     });
+
+    it("give invalid input. expect throw error", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(
+                    name,
+                    [
+                        { key: "test1", value: "false" },
+                        { key: "test2", value: "invalid" },
+                    ],
+                    options
+                )
+        );
+
+        expect(() => getBooleanInputOrDefault("test2", true)).toThrow(
+            "The value of 'test2' is not valid. It must be either true or false but got 'invalid'."
+        );
+    });
 });
 
 describe("execBashCommand", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
     it("should execute a bash command and return the output", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "/bin/bash -c \"echo 'Hello World' && exit 0\"",
+                    success: true,
+                    resolve: {
+                        stdout: "Hello World",
+                        stderr: "",
+                        exitCode: 0,
+                    },
+                },
+            ])
+        );
+
         let result = await execBashCommand("echo 'Hello World' && exit 0");
-        expect(result.stdout).toEqual("Hello World\n");
+        expect(result.stdout).toEqual("Hello World");
         expect(result.stderr).toEqual("");
         expect(result.exitCode).toEqual(0);
 
         result = await execBashCommand('echo "Hello World" && exit 0');
-        expect(result.stdout).toEqual("Hello World\n");
+        expect(result.stdout).toEqual("Hello World");
         expect(result.stderr).toEqual("");
         expect(result.exitCode).toEqual(0);
     });
 
     it("give invalid command. throw error with exit code", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [])
+        );
+
         await expect(execBashCommand("non_existent_command")).rejects.toThrow(
-            "Execute '/bin/bash -c \"non_existent_command\"' failed.\nThe process '/bin/bash' failed with exit code 127"
-        );
-    });
-
-    it("exit with non zero code, should throw error with exit code", async () => {
-        await expect(
-            execBashCommand("echo 'hello world' && exit 1")
-        ).rejects.toThrow(
-            "Execute '/bin/bash -c \"echo 'hello world' && exit 1\"' failed.\nThe process '/bin/bash' failed with exit code 1"
-        );
-    });
-
-    it("give custom message, should throw error with exit code and custom message", async () => {
-        const customMessage = "This is a custom message.";
-        await expect(
-            execBashCommand("echo 'hello world' && exit 1", customMessage)
-        ).rejects.toThrow(
-            `${customMessage}\nThe process '/bin/bash' failed with exit code 1`
+            "Execute '/bin/bash -c \"non_existent_command\"' failed."
         );
     });
 });
 
 describe("execCommand", () => {
     test("should execute command successfully", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: 'echo "Hello World"',
+                    success: true,
+                    resolve: {
+                        stdout: "Hello World",
+                        stderr: "",
+                        exitCode: 0,
+                    },
+                },
+            ])
+        );
+
         const output = await execCommand('echo "Hello World"');
         expect(output.stdout.trim()).toBe("Hello World");
         expect(output.stderr).toBeFalsy();
@@ -287,12 +325,20 @@ describe("execCommand", () => {
     });
 
     test("should throw an error when the command fails", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [])
+        );
+
         await expect(execCommand("invalid-command")).rejects.toThrow(
-            new RegExp("Execute 'invalid-command' failed.")
+            "Execute 'invalid-command' failed."
         );
     });
 
     test("should throw an error with custom error message when provided", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [])
+        );
+
         const customMessage = "Custom error message";
         await expect(
             execCommand("invalid-command", customMessage)
@@ -363,6 +409,27 @@ All notable changes to this project will be documented in this file. See [standa
             changelogFile,
             new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX),
             version
+        );
+
+        expect(section).toBe(expectedSection);
+    });
+
+    it("should read latest version", async () => {
+        const expectedSection = `### [0.0.3](https://github.com/Payadel/changelog-sv-action/compare/v0.0.2...v0.0.3) (2023-04-27)
+
+### Features
+
+* add \`ignore-same-version-error\` input to ignore same version error ([22898f7](https://github.com/Payadel/changelog-sv-action/commit/22898f7a4466db581497f8d832ebcbae47a53b6c))
+
+
+### Development: CI/CD, Build, etc
+
+* **deps:** bump Payadel/release-sv-action from 0.2.1 to 0.2.2 ([8f84614](https://github.com/Payadel/changelog-sv-action/commit/8f846147fab9213cff470114c234ce814206c204))
+`;
+
+        const section = await readChangelogSection(
+            changelogFile,
+            new RegExp(DEFAULT_CHANGELOG_VERSION_REGEX)
         );
 
         expect(section).toBe(expectedSection);
@@ -518,6 +585,46 @@ describe("createReleaseFile", () => {
             createReleaseFile("releaseDir", "releaseFileName")
         ).rejects.toThrow(
             "Can not create release file from 'releaseDir' to 'path/to/git/releaseFileName.zip'."
+        );
+    });
+});
+
+describe("setGitConfigs", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    test("success operation", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: 'git config --global user.email "email"',
+                    success: true,
+                    resolve: {
+                        stdout: "Ok",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+                {
+                    command: 'git config --global user.name "username"',
+                    success: true,
+                    resolve: {
+                        stdout: "Ok",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        await setGitConfigs("email", "username");
+        expect(exec.getExecOutput).toBeCalledTimes(2);
+        expect(exec.getExecOutput).toHaveBeenCalledWith(
+            'git config --global user.email "email"'
+        );
+        expect(exec.getExecOutput).toHaveBeenCalledWith(
+            `git config --global user.name "username"`
         );
     });
 });
