@@ -35,6 +35,7 @@ export function getInputs(): Promise<IInputs> {
             "ignore-less-version-error",
             DEFAULT_INPUTS.ignoreLessVersionError
         );
+
         return readVersion("package.json").then(currentVersion => {
             const inputVersion = getInputOrDefault(
                 "version",
