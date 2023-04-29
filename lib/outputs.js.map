@@ -1,0 +1,1 @@
+{"version":3,"file":"outputs.js","sourceRoot":"","sources":["../src/outputs.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;AAAA,oDAAsC;AAStC,SAAgB,UAAU,CAAC,IAAc;IACrC,IAAI,CAAC,SAAS,CAAC,SAAS,EAAE,IAAI,CAAC,OAAO,CAAC,CAAC;IACxC,IAAI,CAAC,SAAS,CAAC,kBAAkB,EAAE,IAAI,CAAC,cAAc,CAAC,CAAC;IACxD,IAAI,CAAC,SAAS,CAAC,iBAAiB,EAAE,IAAI,CAAC,eAAe,CAAC,CAAC;AAC5D,CAAC;AAJD,gCAIC"}
