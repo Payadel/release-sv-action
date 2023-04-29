@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import { execCommand } from "./utility";
+import { getReleaseCommand, runDry } from "./standard-version";
 
 export function versionMustValid(
     inputVersion: string,
@@ -30,7 +31,7 @@ export function versionMustValid(
         );
 }
 
-export function readVersion(package_path: string): Promise<string> {
+export function readVersionFromNpm(package_path: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         if (!fs.existsSync(package_path)) {
             return reject(
@@ -68,4 +69,16 @@ export function compareVersions(version1: string, version2: string): number {
     }
 
     return 0;
+}
+
+export function detectNewVersion(inputVersion: string): Promise<string> {
+    const releaseCommand = getReleaseCommand(inputVersion, true);
+    return runDry(releaseCommand).then(parseNewVersionFromText);
+}
+
+function parseNewVersionFromText(text: string): string {
+    const regex = /v(\d+\.\d+\.\d+)/;
+    const match = text.match(regex);
+    if (match) return match[1];
+    throw new Error(`Can not detect new version from ${text}`);
 }

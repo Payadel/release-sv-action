@@ -1,6 +1,6 @@
-import { getBooleanInputOrDefault, getInputOrDefault } from "./utility";
-import { readVersion, versionMustValid } from "./version";
+import { readVersionFromNpm, versionMustValid } from "./helpers/version";
 import { DEFAULT_INPUTS } from "./configs";
+import * as core from "@actions/core";
 
 export interface IInputs {
     isTestMode: boolean;
@@ -36,7 +36,7 @@ export function getInputs(): Promise<IInputs> {
             DEFAULT_INPUTS.ignoreLessVersionError
         );
 
-        return readVersion("package.json").then(currentVersion => {
+        return readVersionFromNpm("package.json").then(currentVersion => {
             const inputVersion = getInputOrDefault(
                 "version",
                 DEFAULT_INPUTS.inputVersion,
@@ -107,4 +107,32 @@ function getGenerateChangelog(): GenerateChangelogOptions {
                 `The input generate-changelog '${generateChangelog}' is not valid. Supported values are auto, enable, disable`
             );
     }
+}
+
+export function getInputOrDefault(
+    name: string,
+    default_value: string | null = "",
+    trimWhitespace = true,
+    required = false
+): string | null {
+    const input = core.getInput(name, {
+        trimWhitespace,
+        required,
+    });
+    if (!input || input === "") return default_value;
+    return input;
+}
+
+export function getBooleanInputOrDefault(
+    name: string,
+    defaultValue: boolean,
+    required = false
+): boolean {
+    const input = getInputOrDefault(name, "", true, required)?.toLowerCase();
+    if (!input || input === "") return defaultValue;
+    if (input === "true") return true;
+    if (input === "false") return false;
+    throw new TypeError(
+        `The value of '${name}' is not valid. It must be either true or false but got '${input}'.`
+    );
 }

@@ -1,18 +1,15 @@
 import * as core from "@actions/core";
-import { GenerateChangelogOptions, getInputs } from "./inputs";
-import {
-    createReleaseFile,
-    execCommand,
-    installStandardVersionPackage,
-    operateWhen,
-    push,
-    readChangelogSection,
-    setGitConfigs,
-} from "./utility";
-import { createPullRequest } from "./prHelper";
+import { getInputs } from "./inputs";
+import { createReleaseFile } from "./helpers/utility";
+import { createPullRequest } from "./helpers/prHelper";
 import { IOutputs, setOutputs } from "./outputs";
-import { readVersion } from "./version";
-import * as exec from "@actions/exec";
+import { readVersionFromNpm } from "./helpers/version";
+import {
+    installStandardVersionPackage,
+    standardVersionRelease,
+} from "./helpers/standard-version";
+import { push, setGitConfigs } from "./helpers/git";
+import { readChangelogSection } from "./helpers/changelog";
 
 const run = (): Promise<void> =>
     mainProcess()
@@ -56,7 +53,7 @@ function mainProcess(): Promise<void> {
                 )
             )
             .then(() =>
-                readVersion("./package.json").then(version => {
+                readVersionFromNpm("./package.json").then(version => {
                     outputs.version = version;
                     return version;
                 })
@@ -83,80 +80,6 @@ function mainProcess(): Promise<void> {
             )
             .then(() => setOutputs(outputs));
     });
-}
-
-function standardVersionRelease(
-    generateChangelogOption: GenerateChangelogOptions,
-    inputVersion: string,
-    changelogVersionRegex: RegExp
-): Promise<exec.ExecOutput> {
-    return needGenerateChangelog(
-        generateChangelogOption,
-        inputVersion,
-        changelogVersionRegex
-    )
-        .then(needCreateChangelog =>
-            getReleaseCommand(inputVersion, !needCreateChangelog)
-        )
-        .then(releaseCommand =>
-            execCommand(releaseCommand, "Release standard-version failed.")
-        );
-}
-
-function needGenerateChangelog(
-    generateChangelogOption: GenerateChangelogOptions,
-    inputVersion: string,
-    changelogVersionRegex: RegExp
-): Promise<boolean> {
-    switch (generateChangelogOption) {
-        case "never":
-            return Promise.resolve(false);
-        case "always":
-            return Promise.resolve(true);
-        case "auto":
-            return detectNewVersion(inputVersion).then(newVersion =>
-                getNewestChangelogVersion(changelogVersionRegex).then(
-                    newestChangelogVersion =>
-                        newVersion.toLowerCase() ===
-                        newestChangelogVersion.toLowerCase()
-                )
-            );
-        default:
-            throw new Error(
-                `The generate changelog option (${generateChangelogOption}) is not supported.`
-            );
-    }
-}
-
-function detectNewVersion(inputVersion: string): Promise<string> {
-    const releaseCommand = getReleaseCommand(inputVersion, true);
-    return runDry(releaseCommand).then(parseNewVersionFromText);
-}
-
-function getReleaseCommand(
-    inputVersion: string,
-    skipChangelog: boolean
-): string {
-    let releaseCommand = "standard-version";
-    if (inputVersion) releaseCommand += ` --release-as ${inputVersion}`;
-    if (skipChangelog) releaseCommand += " --skip.changelog";
-    return releaseCommand;
-}
-
-function runDry(command: string): Promise<string> {
-    if (!command.toLowerCase().includes("--dry-run")) command += "--dry-run";
-    return execCommand(command).then(output => output.stdout.trim());
-}
-
-function parseNewVersionFromText(text: string): string {
-    const regex = /v(\d+\.\d+\.\d+)/;
-    const match = text.match(regex);
-    if (match) return match[1];
-    throw new Error(`Can not detect new version from ${text}`);
-}
-
-function getNewestChangelogVersion(pattern: RegExp): Promise<string> {
-    return readChangelogSection("CHANGELOG.md", pattern);
 }
 
 function createPr(

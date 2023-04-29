@@ -1,4 +1,8 @@
-import { compareVersions, readVersion, versionMustValid } from "../src/version";
+import {
+    compareVersions,
+    readVersionFromNpm,
+    versionMustValid,
+} from "../src/helpers/version";
 import fs, { mkdtempSync, writeFileSync } from "fs";
 import { join } from "path";
 import { DEFAULT_INPUTS } from "../src/configs";
@@ -125,12 +129,12 @@ describe("readVersion", () => {
     });
 
     test("should read version from package.json", async () => {
-        const version = await readVersion(packageJsonPath);
+        const version = await readVersionFromNpm(packageJsonPath);
         expect(version).toBe("1.0.0");
     });
 
     test("give invalid path, should throw error", async () => {
-        await expect(readVersion("invalid path")).rejects.toThrow(
+        await expect(readVersionFromNpm("invalid path")).rejects.toThrow(
             "Can not find package.json in 'invalid path'"
         );
     });

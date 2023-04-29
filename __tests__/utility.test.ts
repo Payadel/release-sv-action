@@ -11,7 +11,7 @@ import {
     readChangelogSection,
     readFile,
     setGitConfigs,
-} from "../src/utility";
+} from "../src/helpers/utility";
 import fs, { mkdtempSync, writeFileSync } from "fs";
 import path, { join } from "path";
 import { DEFAULT_CHANGELOG_VERSION_REGEX } from "../src/configs";

@@ -1,6 +1,7 @@
 import * as exec from "@actions/exec";
 import * as core from "@actions/core";
-import { execCommand, getCurrentBranchName } from "./utility";
+import { execCommand } from "./utility";
+import { getCurrentBranchName } from "./git";
 
 interface IPrData {
     number: number;
