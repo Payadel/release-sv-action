@@ -10,6 +10,7 @@ import {
 } from "./utility";
 import { createPullRequest } from "./prHelper";
 import { IOutputs, setOutputs } from "./outputs";
+import { readVersion } from "./version";
 
 const run = (): Promise<void> =>
     mainProcess()
@@ -49,6 +50,11 @@ function mainProcess(): Promise<void> {
             .then(() =>
                 createPr(inputs.createPrForBranchName, inputs.isTestMode).then(
                     prLink => (outputs.pullRequestUrl = prLink ?? "")
+                )
+            )
+            .then(() =>
+                readVersion("./package.json").then(
+                    version => (outputs.version = version)
                 )
             )
             .then(() => setOutputs(outputs));
