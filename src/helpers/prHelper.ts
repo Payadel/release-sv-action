@@ -1,11 +1,6 @@
 import * as exec from "@actions/exec";
-import * as core from "@actions/core";
 import { execCommand } from "./utility";
 import { getCurrentBranchName } from "./git";
-
-interface IPrData {
-    number: number;
-}
 
 export async function createPullRequest(
     createPrForBranchName: string,
@@ -33,22 +28,19 @@ function createOrUpdatePr(
     return execCommand(
         `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
         `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`
-    ).catch(e =>
-        tryFindActivePr(createPrForBranchName, currentBranchName).then(
-            prNumber => {
-                if (!prNumber) {
-                    throw new Error(
-                        `Can not create pull request and can not find any active PR to update.\n${e.toString()}`
-                    );
-                }
-
-                core.info(
-                    "Can not create pull request because it is exist. Try update it."
+    ).catch(e => {
+        const message = e instanceof Error ? e.message : e.toString();
+        if (message.toLowerCase().includes("already exists")) {
+            const prLink = getPrLink(message);
+            if (!prLink) {
+                throw new Error(
+                    `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.`
                 );
-                return updatePr(prNumber, body);
             }
-        )
-    );
+            return updatePr(prLink, body);
+        }
+        return e;
+    });
 }
 
 function getPrLink(str: string): string | null {
@@ -57,30 +49,12 @@ function getPrLink(str: string): string | null {
     return urlMatch ? urlMatch[0] : null;
 }
 
-function updatePr(prNumber: string, body: string): Promise<exec.ExecOutput> {
+function updatePr(
+    prLinkOrNumber: string,
+    body: string
+): Promise<exec.ExecOutput> {
     return execCommand(
-        `gh pr edit ${prNumber} --body ${body}`,
-        `Update pull request with '${prNumber}' failed.`
+        `gh pr edit ${prLinkOrNumber} --body ${body}`,
+        `Update pull request '${prLinkOrNumber}' failed.`
     );
-}
-
-function tryFindActivePr(
-    targetBranchName: string,
-    currentBranchName: string
-): Promise<string | null> {
-    return execCommand(
-        `gh pr list -B ${targetBranchName} -H ${currentBranchName} --state open --json number`,
-        `Trying to find active PR for ${targetBranchName} from ${currentBranchName} failed.`
-    )
-        .then(result => JSON.parse(result.stdout))
-        .then((json: IPrData[]) => {
-            switch (json.length) {
-                case 0:
-                    return null;
-                case 1:
-                    return json[0].number.toString();
-                default:
-                    throw new Error("More than one pull requests found.");
-            }
-        });
 }
