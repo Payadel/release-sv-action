@@ -1,5 +1,9 @@
 import * as core from "@actions/core";
-import { getInputs } from "../src/inputs";
+import {
+    getBooleanInputOrDefault,
+    getInputOrDefault,
+    getInputs,
+} from "../src/inputs";
 
 jest.mock("@actions/core");
 
@@ -151,5 +155,104 @@ describe("GetInputs", () => {
         expect(inputs.releaseDirectory).toBe(".");
         expect(inputs.releaseFileName).toBe("release");
         expect(inputs.createPrForBranchName).toBe("");
+    });
+});
+
+describe("getInputOrDefault", () => {
+    it("should return input data", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(
+                    name,
+                    [{ key: "test", value: "test-value" }],
+                    options
+                )
+        );
+
+        const input = getInputOrDefault("test", "default");
+
+        expect(input).toBe("test-value");
+    });
+
+    it("should return default value", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(name, [{ key: "test", value: "" }], options)
+        );
+
+        const input = getInputOrDefault("test", "default");
+
+        expect(input).toBe("default");
+    });
+});
+
+describe("getBooleanInputOrDefault", () => {
+    it("should return default value", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(name, [{ key: "test", value: "" }], options)
+        );
+
+        const input = getBooleanInputOrDefault("test", true);
+
+        expect(input).toBe(true);
+    });
+
+    it("should return true", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(
+                    name,
+                    [
+                        { key: "test1", value: "true" },
+                        { key: "test2", value: "TruE" },
+                    ],
+                    options
+                )
+        );
+
+        let input = getBooleanInputOrDefault("test1", false);
+        expect(input).toBe(true);
+
+        input = getBooleanInputOrDefault("test2", false);
+        expect(input).toBe(true);
+    });
+
+    it("should return false", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(
+                    name,
+                    [
+                        { key: "test1", value: "false" },
+                        { key: "test2", value: "fALsE" },
+                    ],
+                    options
+                )
+        );
+
+        let input = getBooleanInputOrDefault("test1", true);
+        expect(input).toBe(false);
+
+        input = getBooleanInputOrDefault("test2", true);
+        expect(input).toBe(false);
+    });
+
+    it("give invalid input. expect throw error", () => {
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(
+                    name,
+                    [
+                        { key: "test1", value: "false" },
+                        { key: "test2", value: "invalid" },
+                    ],
+                    options
+                )
+        );
+
+        expect(() => getBooleanInputOrDefault("test2", true)).toThrow(
+            "The value of 'test2' is not valid. It must be either true or false but got 'invalid'."
+        );
     });
 });
