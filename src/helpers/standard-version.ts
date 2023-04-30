@@ -21,7 +21,8 @@ export function getReleaseCommand(
 }
 
 export function runDry(command: string): Promise<string> {
-    if (!command.toLowerCase().includes("--dry-run")) command += " --dry-run";
+    const dryFlag = " --dry-run";
+    if (!command.toLowerCase().includes(dryFlag)) command += dryFlag;
     return execCommand(command).then(output => output.stdout.trim());
 }
 
@@ -40,7 +41,5 @@ export function standardVersionRelease(
         .then(needCreateChangelog =>
             getReleaseCommand(!needCreateChangelog, inputVersion)
         )
-        .then(releaseCommand =>
-            execCommand(releaseCommand, "Release standard-version failed.")
-        );
+        .then(releaseCommand => execCommand(releaseCommand));
 }
