@@ -1,258 +1,67 @@
 import * as core from "@actions/core";
-import {
-    getBooleanInputOrDefault,
-    getInputOrDefault,
-    getInputs,
-} from "../src/inputs";
+import { getInputsOrDefaults } from "../src/inputs";
+import { mockGetInput } from "./mocks";
+import { DEFAULT_INPUTS } from "../src/configs";
 
 jest.mock("@actions/core");
 
-export function mockGetInput(
-    name: string,
-    inputs: { key: string; value: string }[],
-    options?: core.InputOptions | undefined
-) {
-    name = name.toLowerCase();
-    const target = inputs.find(input => input.key.toLowerCase() === name);
-    let result = target ? target.value : "";
-
-    if (options && options.required && !result)
-        throw new Error(`Input required and not supplied: ${name}`);
-    if (options && options.trimWhitespace) result = result.trim();
-    return result;
-}
-
-async function assertValidVersion(inputVersion: string): Promise<void> {
-    jest.spyOn(core, "getInput").mockImplementation(
-        (name: string, options?: core.InputOptions | undefined) =>
-            mockGetInput(
-                name,
-                [{ key: "version", value: inputVersion }],
-                options
-            )
-    );
-    const inputs = await getInputs();
-    expect(inputs.inputVersion).toBe(inputVersion);
-}
-
-describe("version", () => {
-    it("give valid input, should return version", async () => {
-        await assertValidVersion(""); // Empty is valid
-        await assertValidVersion("1");
-        await assertValidVersion("1.0");
-        await assertValidVersion("1.0.0");
-        await assertValidVersion("1.2-alpha");
-        await assertValidVersion("1.2.3-beta.4");
-        await assertValidVersion("1.0.0-rc.1.2");
-    });
-
-    it("give invalid input, should reject promise", async () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [{ key: "version", value: "invalid" }],
-                    options
-                )
-        );
-        await expect(getInputs()).rejects.toThrow(
-            "The input version is not valid."
-        );
-    });
-
-    it("Input version must be trim", async () => {
-        const version = "1.2-alpha";
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [{ key: "version", value: `    ${version}    ` }],
-                    options
-                )
-        );
-
-        const inputs = await getInputs();
-
-        expect(inputs.inputVersion).toBe(version);
-    });
-});
-
 describe("GetInputs", () => {
-    it("should return expected inputs", async () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [
-                        {
-                            key: "git-email",
-                            value: "test@example.com",
-                        },
-                        {
-                            key: "git-user-name",
-                            value: "Test User",
-                        },
-                        {
-                            key: "version",
-                            value: "1.2.3",
-                        },
-                        {
-                            key: "release-directory",
-                            value: "dist",
-                        },
-                        {
-                            key: "release-file-name",
-                            value: "my-release",
-                        },
-                        {
-                            key: "create-pr-for-branch",
-                            value: "main",
-                        },
-                        {
-                            key: "is-test-mode",
-                            value: "true",
-                        },
-                        {
-                            key: "skip-changelog",
-                            value: "false",
-                        },
-                        {
-                            key: "skip-release-file",
-                            value: "false",
-                        },
-                    ],
-                    options
-                )
+    it("It should take 13 parameters and return 13 parameters with default values.", async () => {
+        const inputs = await getInputsOrDefaults(DEFAULT_INPUTS);
+
+        const inputPropNames = Object.getOwnPropertyNames(inputs);
+        expect(inputPropNames.length).toBe(13);
+        expect(inputPropNames.length).toBe(
+            Object.getOwnPropertyNames(DEFAULT_INPUTS).length
         );
 
-        const inputs = await getInputs();
+        for (let name of inputPropNames)
+            expect(inputs[name]).toEqual(DEFAULT_INPUTS[name]);
+    });
 
-        expect(inputs.isTestMode).toBe(true);
-        expect(inputs.gitEmail).toBe("test@example.com");
-        expect(inputs.gitUsername).toBe("Test User");
-        expect(inputs.inputVersion).toBe("1.2.3");
-        // expect(inputs.skipChangelog).toBe(false); //TODO: ***
+    it("give valid parameters.", async () => {
+        const givenInputs = {
+            version: "1.1.1",
+            "ignore-same-version-error": "true",
+            "ignore-less-version-error": "true",
+            "create-pr-for-branch": "main",
+            "generate-changelog": "never",
+            "skip-release-file": "false",
+            "release-file-name": "release_name",
+            "release-directory": "dir",
+            "git-email": "email@email.com",
+            "git-user-name": "username",
+            "changelog-header-regex": "[0-9a-zA-Z]",
+            "version-regex": "[0-9a-zA-Z]",
+            "is-test-mode": "true",
+        };
+        jest.spyOn(core, "getInput").mockImplementation(
+            (name: string, options?: core.InputOptions | undefined) =>
+                mockGetInput(name, givenInputs, options)
+        );
+
+        const inputs = await getInputsOrDefaults(DEFAULT_INPUTS);
+
+        expect(inputs.inputVersion).toBe(givenInputs.version);
+        expect(inputs.ignoreSameVersionError).toBe(true);
+        expect(inputs.ignoreLessVersionError).toBe(true);
+        expect(inputs.createPrForBranchName).toBe(
+            givenInputs["create-pr-for-branch"]
+        );
+        expect(inputs.generateChangelog).toBe(
+            givenInputs["generate-changelog"]
+        );
         expect(inputs.skipReleaseFile).toBe(false);
-        expect(inputs.releaseDirectory).toBe("dist");
-        expect(inputs.releaseFileName).toBe("my-release");
-        expect(inputs.createPrForBranchName).toBe("main");
-    });
-
-    it("should return default inputs", async () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(name, [], options)
+        expect(inputs.releaseFileName).toBe(givenInputs["release-file-name"]);
+        expect(inputs.releaseDirectory).toBe(givenInputs["release-directory"]);
+        expect(inputs.gitEmail).toBe(givenInputs["git-email"]);
+        expect(inputs.gitUsername).toBe(givenInputs["git-user-name"]);
+        expect(inputs.changelogHeaderRegex).toEqual(
+            new RegExp(givenInputs["changelog-header-regex"])
         );
-
-        const inputs = await getInputs();
-
-        expect(inputs.isTestMode).toBe(false);
-        expect(inputs.gitEmail).toBe("github-action@github.com");
-        expect(inputs.gitUsername).toBe("Github Action");
-        expect(inputs.inputVersion).toBe("");
-        // expect(inputs.skipChangelog).toBe(true); //TODO: ***
-        expect(inputs.skipReleaseFile).toBe(true);
-        expect(inputs.releaseDirectory).toBe(".");
-        expect(inputs.releaseFileName).toBe("release");
-        expect(inputs.createPrForBranchName).toBe("");
-    });
-});
-
-describe("getInputOrDefault", () => {
-    it("should return input data", () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [{ key: "test", value: "test-value" }],
-                    options
-                )
+        expect(inputs.versionRegex).toEqual(
+            new RegExp(givenInputs["version-regex"])
         );
-
-        const input = getInputOrDefault("test", "default");
-
-        expect(input).toBe("test-value");
-    });
-
-    it("should return default value", () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(name, [{ key: "test", value: "" }], options)
-        );
-
-        const input = getInputOrDefault("test", "default");
-
-        expect(input).toBe("default");
-    });
-});
-
-describe("getBooleanInputOrDefault", () => {
-    it("should return default value", () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(name, [{ key: "test", value: "" }], options)
-        );
-
-        const input = getBooleanInputOrDefault("test", true);
-
-        expect(input).toBe(true);
-    });
-
-    it("should return true", () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [
-                        { key: "test1", value: "true" },
-                        { key: "test2", value: "TruE" },
-                    ],
-                    options
-                )
-        );
-
-        let input = getBooleanInputOrDefault("test1", false);
-        expect(input).toBe(true);
-
-        input = getBooleanInputOrDefault("test2", false);
-        expect(input).toBe(true);
-    });
-
-    it("should return false", () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [
-                        { key: "test1", value: "false" },
-                        { key: "test2", value: "fALsE" },
-                    ],
-                    options
-                )
-        );
-
-        let input = getBooleanInputOrDefault("test1", true);
-        expect(input).toBe(false);
-
-        input = getBooleanInputOrDefault("test2", true);
-        expect(input).toBe(false);
-    });
-
-    it("give invalid input. expect throw error", () => {
-        jest.spyOn(core, "getInput").mockImplementation(
-            (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [
-                        { key: "test1", value: "false" },
-                        { key: "test2", value: "invalid" },
-                    ],
-                    options
-                )
-        );
-
-        expect(() => getBooleanInputOrDefault("test2", true)).toThrow(
-            "The value of 'test2' is not valid. It must be either true or false but got 'invalid'."
-        );
+        expect(inputs.isTestMode).toBe(true);
     });
 });

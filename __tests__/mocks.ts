@@ -28,12 +28,14 @@ export function mockGetExecOutput(
 
 export function mockGetInput(
     name: string,
-    inputs: { key: string; value: string }[],
+    inputs: { [key: string]: any },
     options?: core.InputOptions | undefined
 ) {
     name = name.toLowerCase();
-    const target = inputs.find(input => input.key.toLowerCase() === name);
-    let result = target ? target.value : "";
+    const targetName = Object.keys(inputs).find(
+        key => key.toLowerCase() == name
+    );
+    let result = targetName ? inputs[targetName] : "";
 
     if (options && options.required && !result)
         throw new Error(`Input required and not supplied: ${name}`);
