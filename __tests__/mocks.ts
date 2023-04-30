@@ -1,4 +1,5 @@
 import * as exec from "@actions/exec";
+import * as core from "@actions/core";
 
 export interface IExpectedCommand {
     command: string;
@@ -23,4 +24,19 @@ export function mockGetExecOutput(
     return target.success
         ? Promise.resolve<exec.ExecOutput>(target.resolve!)
         : Promise.reject<exec.ExecOutput>(new Error(target.rejectMessage!));
+}
+
+export function mockGetInput(
+    name: string,
+    inputs: { key: string; value: string }[],
+    options?: core.InputOptions | undefined
+) {
+    name = name.toLowerCase();
+    const target = inputs.find(input => input.key.toLowerCase() === name);
+    let result = target ? target.value : "";
+
+    if (options && options.required && !result)
+        throw new Error(`Input required and not supplied: ${name}`);
+    if (options && options.trimWhitespace) result = result.trim();
+    return result;
 }

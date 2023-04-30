@@ -50,7 +50,7 @@ export function createReleaseFile(
 
 export function getInputOrDefault(
     name: string,
-    default_value: string | undefined = "",
+    default_value: string | undefined = undefined,
     trimWhitespace = true,
     required = false
 ): string | undefined {
@@ -64,11 +64,16 @@ export function getInputOrDefault(
 
 export function getBooleanInputOrDefault(
     name: string,
-    defaultValue: boolean,
+    defaultValue: boolean | undefined = undefined,
     required = false
-): boolean {
-    const input = getInputOrDefault(name, "", true, required)?.toLowerCase();
-    if (!input || input === "") return defaultValue;
+): boolean | undefined {
+    const input = getInputOrDefault(
+        name,
+        undefined,
+        true,
+        required
+    )?.toLowerCase();
+    if (!input) return defaultValue;
     if (input === "true") return true;
     if (input === "false") return false;
     throw new TypeError(

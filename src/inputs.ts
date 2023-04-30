@@ -1,102 +1,84 @@
-import { readVersionFromNpm, versionMustValid } from "./helpers/version";
-import { DEFAULT_INPUTS } from "./configs";
-import * as core from "@actions/core";
+import { getBooleanInputOrDefault, getInputOrDefault } from "./helpers/utility";
 
 export interface IInputs {
-    isTestMode: boolean;
-    gitEmail: string;
-    gitUsername: string;
-    inputVersion: string;
-    currentVersion: string;
-    versionRegex: RegExp;
+    inputVersion?: string;
     ignoreSameVersionError: boolean;
     ignoreLessVersionError: boolean;
+    createPrForBranchName?: string;
     generateChangelog: GenerateChangelogOptions;
-    changelogVersionRegex: RegExp;
     skipReleaseFile: boolean;
     releaseDirectory: string;
     releaseFileName: string;
-    createPrForBranchName: string;
+    isTestMode: boolean;
+    gitEmail: string;
+    gitUsername: string;
+    versionRegex?: RegExp;
+    changelogHeaderRegex?: RegExp;
 }
 
 export type GenerateChangelogOptions = "always" | "never" | "auto";
 
-export function getInputs(): Promise<IInputs> {
-    return new Promise<IInputs>(resolve => {
-        const versionRegex = new RegExp(
-            getInputOrDefault("version-regex", null) ??
-                DEFAULT_INPUTS.versionRegex
-        );
-        const ignoreSameVersionError = getBooleanInputOrDefault(
-            "ignore-same-version-error",
-            DEFAULT_INPUTS.ignoreSameVersionError
-        );
-        const ignoreLessVersionError = getBooleanInputOrDefault(
-            "ignore-less-version-error",
-            DEFAULT_INPUTS.ignoreLessVersionError
-        );
-
-        return readVersionFromNpm("package.json").then(currentVersion => {
-            const inputVersion = getInputOrDefault(
+export function getInputsOrDefaults(defaultInputs: IInputs) {
+    return new Promise<IInputs>(resolve =>
+        resolve({
+            inputVersion: getInputOrDefault(
                 "version",
-                DEFAULT_INPUTS.inputVersion,
-                true,
-                false
-            )!;
-            if (inputVersion) {
-                versionMustValid(
-                    inputVersion,
-                    currentVersion,
-                    versionRegex,
-                    ignoreSameVersionError,
-                    ignoreLessVersionError
-                );
-            }
-
-            return resolve({
-                inputVersion,
-                currentVersion,
-                versionRegex,
-                ignoreLessVersionError,
-                ignoreSameVersionError,
-                generateChangelog: getGenerateChangelog(),
-                isTestMode: getBooleanInputOrDefault(
-                    "is-test-mode",
-                    DEFAULT_INPUTS.isTestMode
-                ),
-                gitEmail: getInputOrDefault(
-                    "git-email",
-                    DEFAULT_INPUTS.gitEmail
-                )!,
-                gitUsername: getInputOrDefault(
-                    "git-user-name",
-                    DEFAULT_INPUTS.gitUsername
-                )!,
-                skipReleaseFile: getBooleanInputOrDefault(
-                    "skip-release-file",
-                    DEFAULT_INPUTS.skipReleaseFile
-                ),
-                releaseDirectory: getInputOrDefault("release-directory", ".")!,
-                releaseFileName: getInputOrDefault(
-                    "release-file-name",
-                    DEFAULT_INPUTS.releaseFileName
-                )!,
-                createPrForBranchName: getInputOrDefault(
-                    "create-pr-for-branch",
-                    DEFAULT_INPUTS.createPrForBranchName
-                )!,
-                changelogVersionRegex: new RegExp(
-                    getInputOrDefault("changelog-version-regex", null) ??
-                        DEFAULT_INPUTS.changelogVersionRegex
-                ),
-            });
-        });
-    });
+                defaultInputs.inputVersion
+            ),
+            versionRegex: getRegexOrDefault(
+                "version-regex",
+                defaultInputs.versionRegex
+            ),
+            ignoreLessVersionError: getBooleanInputOrDefault(
+                "ignore-same-version-error",
+                defaultInputs.ignoreLessVersionError
+            )!,
+            ignoreSameVersionError: getBooleanInputOrDefault(
+                "ignore-less-version-error",
+                defaultInputs.ignoreSameVersionError
+            )!,
+            generateChangelog: getGenerateChangelog(
+                defaultInputs.generateChangelog
+            ),
+            isTestMode: getBooleanInputOrDefault(
+                "is-test-mode",
+                defaultInputs.isTestMode
+            )!,
+            gitEmail: getInputOrDefault("git-email", defaultInputs.gitEmail)!,
+            gitUsername: getInputOrDefault(
+                "git-user-name",
+                defaultInputs.gitUsername
+            )!,
+            skipReleaseFile: getBooleanInputOrDefault(
+                "skip-release-file",
+                defaultInputs.skipReleaseFile
+            )!,
+            releaseDirectory: getInputOrDefault(
+                "release-directory",
+                defaultInputs.releaseDirectory
+            )!,
+            releaseFileName: getInputOrDefault(
+                "release-file-name",
+                defaultInputs.releaseFileName
+            )!,
+            createPrForBranchName: getInputOrDefault(
+                "create-pr-for-branch",
+                defaultInputs.createPrForBranchName
+            ),
+            changelogHeaderRegex: getRegexOrDefault(
+                "changelog-header-regex",
+                defaultInputs.changelogHeaderRegex
+            ),
+        })
+    );
 }
 
-function getGenerateChangelog(): GenerateChangelogOptions {
+function getGenerateChangelog(
+    default_value: GenerateChangelogOptions
+): GenerateChangelogOptions {
     const generateChangelog =
-        getInputOrDefault("generate-changelog", null)?.toLowerCase() ?? "auto";
+        getInputOrDefault("generate-changelog", undefined)?.toLowerCase() ??
+        default_value;
     switch (generateChangelog) {
         case "auto":
         case "always":
@@ -109,30 +91,11 @@ function getGenerateChangelog(): GenerateChangelogOptions {
     }
 }
 
-export function getInputOrDefault(
+function getRegexOrDefault(
     name: string,
-    default_value: string | null = "",
-    trimWhitespace = true,
-    required = false
-): string | null {
-    const input = core.getInput(name, {
-        trimWhitespace,
-        required,
-    });
-    if (!input || input === "") return default_value;
-    return input;
-}
-
-export function getBooleanInputOrDefault(
-    name: string,
-    defaultValue: boolean,
-    required = false
-): boolean {
-    const input = getInputOrDefault(name, "", true, required)?.toLowerCase();
-    if (!input || input === "") return defaultValue;
-    if (input === "true") return true;
-    if (input === "false") return false;
-    throw new TypeError(
-        `The value of '${name}' is not valid. It must be either true or false but got '${input}'.`
-    );
+    default_regex: string | RegExp | undefined = undefined
+): RegExp | undefined {
+    const versionRegexStr = getInputOrDefault(name, undefined);
+    if (versionRegexStr) return new RegExp(versionRegexStr);
+    return default_regex ? new RegExp(default_regex) : undefined;
 }
