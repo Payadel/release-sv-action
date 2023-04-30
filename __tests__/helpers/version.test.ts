@@ -1,115 +1,16 @@
 import {
     compareVersions,
+    detectNewVersion,
     readVersionFromNpm,
     versionMustValid,
-} from "../src/helpers/version";
+} from "../../src/helpers/version";
 import fs, { mkdtempSync, writeFileSync } from "fs";
 import { join } from "path";
-import { DEFAULT_INPUTS } from "../src/configs";
+import { DEFAULT_INPUTS } from "../../src/configs";
+import * as exec from "@actions/exec";
+import { mockGetExecOutput } from "../mocks";
 
-describe("versionMustValid", () => {
-    it("give valid inputs. expect not throw exception", () => {
-        // Arrange
-        const inputVersion = "1.2.3";
-        const currentVersion = "1.0.0";
-        const versionRegex = /^\d+\.\d+\.\d+$/;
-
-        // Act & Assert
-        expect(() =>
-            versionMustValid(inputVersion, currentVersion, versionRegex)
-        ).not.toThrow();
-    });
-
-    it("version not match with regex", () => {
-        // Arrange
-        const inputVersion = "abc";
-        const currentVersion = "1.0.0";
-        const versionRegex = DEFAULT_INPUTS.versionRegex;
-
-        // Act & Assert
-        expect(() =>
-            versionMustValid(inputVersion, currentVersion, versionRegex)
-        ).toThrow(
-            "The version format 'abc' is not valid. If you want, you can change 'version-regex'."
-        );
-    });
-
-    it("same input and current version without ignoreSameVersionError, expect throw error", () => {
-        // Arrange
-        const inputVersion = "1.0.0";
-        const currentVersion = "1.0.0";
-        const versionRegex = DEFAULT_INPUTS.versionRegex;
-        const ignoreSameVersionError = false;
-
-        // Act & Assert
-        expect(() =>
-            versionMustValid(
-                inputVersion,
-                currentVersion,
-                versionRegex,
-                ignoreSameVersionError
-            )
-        ).toThrow(Error);
-    });
-
-    it("same input and current version with ignoreSameVersionError, expect throw error", () => {
-        // Arrange
-        const inputVersion = "1.0.0";
-        const currentVersion = "1.0.0";
-        const versionRegex = DEFAULT_INPUTS.versionRegex;
-        const ignoreSameVersionError = true;
-
-        // Act & Assert
-        expect(() =>
-            versionMustValid(
-                inputVersion,
-                currentVersion,
-                versionRegex,
-                ignoreSameVersionError
-            )
-        ).not.toThrow();
-    });
-
-    it("Input version less than current version without ignoreLessVersionError. expect throw error", () => {
-        // Arrange
-        const inputVersion = "1.0.0";
-        const currentVersion = "1.1.0";
-        const versionRegex = DEFAULT_INPUTS.versionRegex;
-        const ignoreLessVersionError = false;
-
-        // Act & Assert
-        expect(() =>
-            versionMustValid(
-                inputVersion,
-                currentVersion,
-                versionRegex,
-                false,
-                ignoreLessVersionError
-            )
-        ).toThrow(Error);
-    });
-
-    it("Input version less than current version with ignoreLessVersionError. expect throw error", () => {
-        // Arrange
-        const inputVersion = "1.0.0";
-        const currentVersion = "1.1.0";
-        const versionRegex = DEFAULT_INPUTS.versionRegex;
-        const ignoreLessVersionError = true;
-
-        // Act & Assert
-        expect(() =>
-            versionMustValid(
-                inputVersion,
-                currentVersion,
-                versionRegex,
-                false,
-                ignoreLessVersionError
-            )
-        ).not.toThrow(Error);
-    });
-});
-
-describe("readVersion", () => {
+describe("readVersionFromNpm", () => {
     let tempDir: string;
     let packageJsonPath: string;
 
@@ -137,6 +38,122 @@ describe("readVersion", () => {
         await expect(readVersionFromNpm("invalid path")).rejects.toThrow(
             "Can not find package.json in 'invalid path'"
         );
+    });
+});
+
+describe("versionMustValid", () => {
+    it("give valid inputs. expect not throw exception", () => {
+        // Arrange
+        const inputVersion = "1.2.3";
+        const currentVersion = "1.0.0";
+        const versionRegex = /^\d+\.\d+\.\d+$/;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                false,
+                false,
+                versionRegex
+            )
+        ).not.toThrow();
+    });
+
+    it("version not match with regex", () => {
+        // Arrange
+        const inputVersion = "abc";
+        const currentVersion = "1.0.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                false,
+                false,
+                versionRegex
+            )
+        ).toThrow(
+            "The version format 'abc' is not valid. If you want, you can change 'version-regex'."
+        );
+    });
+
+    it("same input and current version without ignoreSameVersionError, expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.0.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreSameVersionError = false;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                ignoreSameVersionError,
+                false,
+                versionRegex
+            )
+        ).toThrow(Error);
+    });
+
+    it("same input and current version with ignoreSameVersionError, expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.0.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreSameVersionError = true;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                ignoreSameVersionError,
+                false,
+                versionRegex
+            )
+        ).not.toThrow();
+    });
+
+    it("Input version less than current version without ignoreLessVersionError. expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.1.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreLessVersionError = false;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                false,
+                ignoreLessVersionError,
+                versionRegex
+            )
+        ).toThrow(Error);
+    });
+
+    it("Input version less than current version with ignoreLessVersionError. expect throw error", () => {
+        // Arrange
+        const inputVersion = "1.0.0";
+        const currentVersion = "1.1.0";
+        const versionRegex = DEFAULT_INPUTS.versionRegex;
+        const ignoreLessVersionError = true;
+
+        // Act & Assert
+        expect(() =>
+            versionMustValid(
+                inputVersion,
+                currentVersion,
+                false,
+                ignoreLessVersionError,
+                versionRegex
+            )
+        ).not.toThrow(Error);
     });
 });
 
@@ -179,5 +196,43 @@ describe("compareVersions", () => {
         expect(compareVersions("1.2.0", "1.2")).toBe(0);
         expect(compareVersions("1", "1.0.0")).toBe(0);
         expect(compareVersions("1.0.0", "1")).toBe(0);
+    });
+});
+
+describe("detectNewVersion", () => {
+    jest.mock("@actions/exec");
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    it("give inputVersion", async () => {
+        const inputVersion = "1.0.0";
+
+        await expect(detectNewVersion(inputVersion)).resolves.toBe(
+            inputVersion
+        );
+    });
+
+    it("not give inputVersion", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: "standard-version --skip.changelog --dry-run",
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "✔ bumping version in package.json from 0.2.2 to 0.3.0\n" +
+                            "✔ bumping version in package-lock.json from 0.2.2 to 0.3.0\n" +
+                            "✔ committing package-lock.json and package.json\n" +
+                            "✔ tagging release v0.3.0\n" +
+                            "ℹ Run `git push --follow-tags origin dev && npm publish` to publish",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        await expect(detectNewVersion()).resolves.toBe("0.3.0");
     });
 });

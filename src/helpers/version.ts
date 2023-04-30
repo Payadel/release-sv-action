@@ -3,15 +3,20 @@
 import fs from "fs";
 import { execCommand } from "./utility";
 import { getReleaseCommand, runDry } from "./standard-version";
+import { SEMANTIC_VERSION_REGEX } from "../configs";
 
 export function versionMustValid(
     inputVersion: string,
     currentVersion: string,
-    versionRegex: RegExp,
     ignoreSameVersionError = false,
-    ignoreLessVersionError = false
+    ignoreLessVersionError = false,
+    versionRegex?: RegExp
 ): void {
-    if (!versionRegex.test(inputVersion))
+    const pattern = versionRegex
+        ? new RegExp(versionRegex)
+        : SEMANTIC_VERSION_REGEX;
+
+    if (!pattern.test(inputVersion))
         throw new Error(
             `The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`
         );
@@ -71,8 +76,9 @@ export function compareVersions(version1: string, version2: string): number {
     return 0;
 }
 
-export function detectNewVersion(inputVersion: string): Promise<string> {
-    const releaseCommand = getReleaseCommand(inputVersion, true);
+export function detectNewVersion(inputVersion?: string): Promise<string> {
+    if (inputVersion) return Promise.resolve(inputVersion);
+    const releaseCommand = getReleaseCommand(true, inputVersion);
     return runDry(releaseCommand).then(parseNewVersionFromText);
 }
 
