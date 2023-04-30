@@ -1,7 +1,7 @@
 import { execCommand } from "./utility";
 import * as exec from "@actions/exec";
 import { GenerateChangelogOptions } from "../inputs";
-import { needGenerateChangelog } from "./changelog";
+import { isNeedGenerateChangelog } from "./changelog";
 
 export function installStandardVersionPackage(): Promise<exec.ExecOutput> {
     return execCommand(
@@ -11,8 +11,8 @@ export function installStandardVersionPackage(): Promise<exec.ExecOutput> {
 }
 
 export function getReleaseCommand(
-    inputVersion: string,
-    skipChangelog: boolean
+    skipChangelog: boolean,
+    inputVersion?: string
 ): string {
     let releaseCommand = "standard-version";
     if (inputVersion) releaseCommand += ` --release-as ${inputVersion}`;
@@ -21,22 +21,24 @@ export function getReleaseCommand(
 }
 
 export function runDry(command: string): Promise<string> {
-    if (!command.toLowerCase().includes("--dry-run")) command += "--dry-run";
+    if (!command.toLowerCase().includes("--dry-run")) command += " --dry-run";
     return execCommand(command).then(output => output.stdout.trim());
 }
 
 export function standardVersionRelease(
     generateChangelogOption: GenerateChangelogOptions,
-    inputVersion: string,
-    changelogVersionRegex: RegExp
+    changelog_file: string,
+    inputVersion?: string,
+    changelogHeaderRegex?: RegExp
 ): Promise<exec.ExecOutput> {
-    return needGenerateChangelog(
+    return isNeedGenerateChangelog(
         generateChangelogOption,
+        changelog_file,
         inputVersion,
-        changelogVersionRegex
+        changelogHeaderRegex
     )
         .then(needCreateChangelog =>
-            getReleaseCommand(inputVersion, !needCreateChangelog)
+            getReleaseCommand(!needCreateChangelog, inputVersion)
         )
         .then(releaseCommand =>
             execCommand(releaseCommand, "Release standard-version failed.")
