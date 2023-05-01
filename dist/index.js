@@ -62,39 +62,47 @@ exports.getNewestChangelogVersion = exports.isNeedGenerateChangelog = exports.ge
 const utility_1 = __nccwpck_require__(8499);
 const version_1 = __nccwpck_require__(8882);
 const core = __importStar(__nccwpck_require__(2186));
-exports.DEFAULT_CHANGELOG_HEADER_REGEX = /#+( )+((\[[^\]]+]\([^)]+\))|[^ ]+)( )+\([^)]+\)/;
-exports.DEFAULT_CHANGELOG_VERSION_REGEX = /(?:[[^]]*]|)s*([a-zA-Z0-9.]+)/;
+exports.DEFAULT_CHANGELOG_HEADER_REGEX = new RegExp("#+( )+((\\[[^\\]]+]\\([^)]+\\))|[^ ]+)( )+\\([^)]+\\)");
+exports.DEFAULT_CHANGELOG_VERSION_REGEX = new RegExp("(?:[[^]]*]|)s*([a-zA-Z0-9.]+)");
 function readChangelogSection(changelog_file, targetVersion, changelogHeaderRegex) {
     return (0, utility_1.readFile)(changelog_file).then(content => {
-        core.debug(`${changelog_file}:\n${content}`);
+        core.debug(`Read ${changelog_file}.`);
         const lines = content.split("\n");
+        core.debug(`It has ${lines.length} lines.`);
         changelogHeaderRegex =
             changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
+        core.debug(`Regex: ${changelogHeaderRegex.source}`);
         const headerLines = getChangelogHeaders(lines, undefined, changelogHeaderRegex);
         let targetIndex;
         if (targetVersion) {
+            core.debug(`Target version is ${targetVersion}. Try find target index.`);
             // Find target header (with specific version)
             targetIndex = headerLines.findIndex(line => new RegExp(`\\b${targetVersion.toLowerCase()}\\b`).test(line.line));
             if (targetIndex < 0) {
                 throw new Error(`Can not find or detect any changelog with version ${targetVersion}.\n` +
                     "You can update regex or report this issue with details.");
             }
+            core.debug(`Target index: ${targetIndex}`);
         }
         else {
+            core.debug(`The targetVersion is not provided. So consider 0 as target index.`);
             targetIndex = 0;
         }
         const startLineIndex = headerLines[targetIndex].index;
         const endLineIndex = targetIndex + 1 < headerLines.length
             ? headerLines[targetIndex + 1].index
             : lines.length;
+        core.debug(`Slice from ${startLineIndex} to ${endLineIndex}`);
         return lines.slice(startLineIndex, endLineIndex).join("\n");
     });
 }
 exports.readChangelogSection = readChangelogSection;
 function getChangelogHeaders(lines, limit, changelogHeaderRegex) {
+    core.debug(`Try find changelog headers from ${lines.length} lines with limit ${limit}`);
     const headerLines = [];
     changelogHeaderRegex =
         changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
+    core.debug(`Regex is: ${changelogHeaderRegex.source}`);
     for (let i = 0; i < lines.length; i++) {
         if (!changelogHeaderRegex.test(lines[i]))
             continue;
@@ -104,7 +112,7 @@ function getChangelogHeaders(lines, limit, changelogHeaderRegex) {
     }
     if (headerLines.length === 0) {
         throw new Error("Can not find or detect any changelog header.\n" +
-            `Current regex: ${changelogHeaderRegex}\n` +
+            `Current regex: ${changelogHeaderRegex.source}\n` +
             `Test on ${lines.length} lines.\n` +
             "You can update regex or report this issue with details.");
     }
@@ -142,8 +150,8 @@ function autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex,
 }
 function getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex) {
     return (0, utility_1.readFile)(changelog_file).then(content => {
-        core.debug(`${changelog_file}:\n${content}`);
         const lines = content.split("\n");
+        core.debug(`${changelog_file} was read. It has ${lines.length} lines.`);
         const latestHeaderLine = getChangelogHeaders(lines, 1, changelogHeaderRegex)[0].line;
         const versionMatch = latestHeaderLine.match(changelogVersionRegex);
         return versionMatch ? versionMatch[0] : null;
@@ -346,10 +354,13 @@ const git_1 = __nccwpck_require__(7052);
 const core = __importStar(__nccwpck_require__(2186));
 function execBashCommand(command, errorMessage, args, options) {
     command = command.replace(/"/g, "'");
-    return execCommand(`/bin/bash -c "${command}"`, errorMessage, args, options);
+    command = `/bin/bash -c "${command}"`;
+    core.debug(`Execute command: ${command}`);
+    return execCommand(command, errorMessage, args, options);
 }
 exports.execBashCommand = execBashCommand;
 function execCommand(command, errorMessage, args, options) {
+    core.debug(`Execute command: ${command}`);
     return exec.getExecOutput(command, args, options).catch(error => {
         const title = errorMessage || `Execute '${command}' failed.`;
         const message = error instanceof Error ? error.message : error.toString();
@@ -359,6 +370,7 @@ function execCommand(command, errorMessage, args, options) {
 exports.execCommand = execCommand;
 function readFile(fileName) {
     return new Promise((resolve, reject) => {
+        core.debug(`Reading file: ${fileName}`);
         if (!fs_1.default.existsSync(fileName)) {
             return reject(new Error(`Can not find '${fileName}'.`));
         }
@@ -380,8 +392,11 @@ function getInputOrDefault(name, default_value = undefined, trimWhitespace = tru
         trimWhitespace,
         required,
     });
-    if (!input || input === "")
+    if (!input || input === "") {
+        core.debug(`Try get ${name} but it is not provided so return default value '${default_value}'`);
         return default_value;
+    }
+    core.debug(`Get ${name}: ${input}`);
     return input;
 }
 exports.getInputOrDefault = getInputOrDefault;
@@ -407,6 +422,29 @@ exports.getBooleanInputOrDefault = getBooleanInputOrDefault;
 "use strict";
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -415,12 +453,14 @@ exports.detectNewVersion = exports.compareVersions = exports.readVersionFromNpm 
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const utility_1 = __nccwpck_require__(8499);
 const standard_version_1 = __nccwpck_require__(6837);
+const core = __importStar(__nccwpck_require__(2186));
 exports.SEMANTIC_VERSION_REGEX = /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 function versionMustValid(inputVersion, currentVersion, ignoreSameVersionError = false, ignoreLessVersionError = false, versionRegex) {
     return new Promise((resolve, reject) => {
         const pattern = versionRegex
             ? new RegExp(versionRegex)
             : exports.SEMANTIC_VERSION_REGEX;
+        core.debug(`Test ${inputVersion} with ${pattern.source}.`);
         if (!pattern.test(inputVersion)) {
             return reject(new Error(`The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`));
         }
@@ -443,6 +483,7 @@ function readVersionFromNpm(package_path) {
         }
         if (!package_path.includes("/"))
             package_path = `./${package_path}`;
+        core.debug(`Read version from ${package_path}`);
         return (0, utility_1.execCommand)(`node -p -e "require('${package_path}').version"`, `Read version from '${package_path}' failed.`).then(version => resolve(version.stdout.trim()));
     });
 }
