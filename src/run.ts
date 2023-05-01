@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
-import { getInputs } from "./inputs";
+import { getInputsOrDefaults, IInputs, validateInputs } from "./inputs";
 import { createReleaseFile } from "./helpers/utility";
 import { createPullRequest } from "./helpers/prHelper";
-import { IOutputs, setOutputs } from "./outputs";
+import { IActionOutputs, setOutputs } from "./outputs";
 import { readVersionFromNpm } from "./helpers/version";
 import {
     installStandardVersionPackage,
@@ -10,9 +10,14 @@ import {
 } from "./helpers/standard-version";
 import { push, setGitConfigs } from "./helpers/git";
 import { readChangelogSection } from "./helpers/changelog";
+import { ExecOutput } from "@actions/exec";
 
-const run = (): Promise<void> =>
-    mainProcess()
+const run = (
+    default_inputs: IInputs,
+    package_json_path: string,
+    changelog_file: string
+): Promise<void> =>
+    mainProcess(default_inputs, package_json_path, changelog_file)
         .then(() => core.info("Operation completed successfully."))
         .catch(error => {
             core.error("Operation failed.");
@@ -23,69 +28,70 @@ const run = (): Promise<void> =>
 
 export default run;
 
-function mainProcess(): Promise<void> {
-    return getInputs().then(inputs => {
-        const outputs: IOutputs = {};
-        return installStandardVersionPackage()
-            .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
-            .then(() =>
-                standardVersionRelease(
-                    inputs.generateChangelog,
-                    inputs.inputVersion,
-                    inputs.changelogVersionRegex
+function mainProcess(
+    default_inputs: IInputs,
+    package_json_file: string,
+    changelog_file: string
+): Promise<void> {
+    return getInputsOrDefaults(default_inputs).then(inputs =>
+        _validateInputs(inputs, package_json_file).then(() => {
+            const outputs: IActionOutputs = {
+                version: "",
+                changelog: "",
+                "release-filename": "",
+                "pull-request-url": "",
+            };
+            return installStandardVersionPackage()
+                .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
+                .then(() =>
+                    standardVersionRelease(
+                        inputs.generateChangelog,
+                        changelog_file,
+                        inputs.inputVersion,
+                        inputs.changelogHeaderRegex
+                    )
                 )
-            )
-            .then(() =>
-                releaseFiles(
-                    inputs.skipReleaseFile,
-                    inputs.releaseDirectory,
-                    inputs.releaseFileName
-                ).then(
-                    releaseFileName =>
-                        (outputs.releaseFileName = releaseFileName ?? "")
+                .then(() =>
+                    _releaseFiles(
+                        inputs.skipReleaseFile,
+                        inputs.releaseDirectory,
+                        inputs.releaseFileName,
+                        outputs
+                    )
                 )
-            )
-            .then(() =>
-                operateWhen(
-                    !inputs.isTestMode,
-                    push,
-                    "The test mode is enabled so skipping push."
-                )
-            )
-            .then(() =>
-                readVersionFromNpm("./package.json").then(version => {
-                    outputs.version = version;
-                    return version;
-                })
-            )
-            .then(newVersion =>
-                readChangelogSection(
-                    "CHANGELOG.md",
-                    inputs.changelogVersionRegex,
-                    newVersion
-                )
-                    .then(changelog => {
-                        outputs.changelog = changelog;
-                        return changelog;
-                    })
-                    .then(changelog =>
-                        createPr(
+                .then(() => _push(inputs.isTestMode))
+                .then(() => _setVersionToOutput(package_json_file, outputs))
+                .then(newVersion =>
+                    _changelog(
+                        changelog_file,
+                        newVersion,
+                        outputs,
+                        inputs.changelogHeaderRegex
+                    ).then(changelog =>
+                        _createPr(
+                            outputs,
+                            changelog,
                             inputs.createPrForBranchName,
-                            inputs.isTestMode,
-                            changelog
-                        ).then(
-                            prLink => (outputs.pullRequestUrl = prLink ?? "")
+                            inputs.isTestMode
                         )
                     )
-            )
-            .then(() => setOutputs(outputs));
-    });
+                )
+                .then(() => setOutputs(outputs));
+        })
+    );
 }
 
-function createPr(
-    createPrForBranchName: string,
-    isTestMode = false,
-    body: string
+function _validateInputs(inputs: IInputs, package_json_file: string) {
+    return readVersionFromNpm(package_json_file).then(currentVersion =>
+        validateInputs(inputs, currentVersion)
+    );
+}
+
+function _createPr(
+    outputs: IActionOutputs,
+    body: string,
+    createPrForBranchName?: string,
+    isTestMode: boolean = false
 ): Promise<string | null> {
     if (isTestMode) {
         core.info(
@@ -98,13 +104,16 @@ function createPr(
         return Promise.resolve(null);
     }
 
-    return createPullRequest(createPrForBranchName, body);
+    return createPullRequest(createPrForBranchName, body).then(
+        prLink => (outputs["pull-request-url"] = prLink ?? "")
+    );
 }
 
-function releaseFiles(
+function _releaseFiles(
     skipReleaseFile: boolean,
     releaseDirectory: string,
-    releaseFileName: string
+    releaseFileName: string,
+    outputs: IActionOutputs
 ): Promise<string | null> {
     if (skipReleaseFile) {
         core.info(
@@ -112,5 +121,38 @@ function releaseFiles(
         );
         return Promise.resolve(null);
     }
-    return createReleaseFile(releaseDirectory, releaseFileName);
+    return createReleaseFile(releaseDirectory, releaseFileName).then(
+        releaseFileName => (outputs["release-filename"] = releaseFileName ?? "")
+    );
+}
+
+function _push(isTestMode: boolean): Promise<ExecOutput | null> {
+    if (isTestMode) return Promise.resolve(null);
+    return push();
+}
+
+function _setVersionToOutput(
+    package_json_file: string,
+    outputs: IActionOutputs
+) {
+    return readVersionFromNpm(package_json_file).then(version => {
+        outputs.version = version;
+        return version;
+    });
+}
+
+function _changelog(
+    changelog_file: string,
+    newVersion: string,
+    outputs: IActionOutputs,
+    changelogHeaderRegex?: RegExp
+) {
+    return readChangelogSection(
+        changelog_file,
+        newVersion,
+        changelogHeaderRegex
+    ).then(changelog => {
+        outputs.changelog = changelog;
+        return changelog;
+    });
 }
