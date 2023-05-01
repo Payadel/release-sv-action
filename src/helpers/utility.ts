@@ -6,17 +6,26 @@ import * as core from "@actions/core";
 
 export function execBashCommand(
     command: string,
-    errorMessage?: string
+    errorMessage?: string,
+    args?: string[] | undefined,
+    options?: exec.ExecOptions | undefined
 ): Promise<exec.ExecOutput> {
     command = command.replace(/"/g, "'");
-    return execCommand(`/bin/bash -c "${command}"`, errorMessage);
+    return execCommand(
+        `/bin/bash -c "${command}"`,
+        errorMessage,
+        args,
+        options
+    );
 }
 
 export function execCommand(
     command: string,
-    errorMessage?: string
+    errorMessage?: string,
+    args?: string[] | undefined,
+    options?: exec.ExecOptions | undefined
 ): Promise<exec.ExecOutput> {
-    return exec.getExecOutput(command).catch(error => {
+    return exec.getExecOutput(command, args, options).catch(error => {
         const title = errorMessage || `Execute '${command}' failed.`;
         const message =
             error instanceof Error ? error.message : error.toString();

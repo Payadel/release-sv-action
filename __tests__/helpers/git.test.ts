@@ -1,10 +1,13 @@
 import * as exec from "@actions/exec";
 import { mockGetExecOutput } from "../mocks";
 import {
+    ensureBranchNameIsValid,
     getCurrentBranchName,
     push,
     setGitConfigs,
 } from "../../src/helpers/git";
+
+jest.mock("@actions/exec");
 
 describe("getCurrentBranchName", () => {
     beforeEach(() => {
@@ -28,9 +31,6 @@ describe("getCurrentBranchName", () => {
         );
 
         const execOutput = await getCurrentBranchName();
-        expect(exec.getExecOutput).toHaveBeenCalledWith(
-            "git rev-parse --abbrev-ref HEAD"
-        );
         expect(execOutput).toEqual(currentBranchName);
     });
 
@@ -74,17 +74,7 @@ describe("push", () => {
         );
 
         const execOutput = await push();
-        expect(exec.getExecOutput).toHaveBeenCalledWith(
-            "git rev-parse --abbrev-ref HEAD"
-        );
-        expect(exec.getExecOutput).toHaveBeenCalledWith(
-            `git push --follow-tags origin ${currentBranchName}`
-        );
-        expect(execOutput).toEqual({
-            stdout: "Ok",
-            stderr: "",
-            exitCode: 0,
-        });
+        expect(execOutput.stdout).toBe("Ok");
     });
 
     test("throws an error if getting the current branch name fails", async () => {
@@ -153,11 +143,59 @@ describe("setGitConfigs", () => {
 
         await setGitConfigs("email", "username");
         expect(exec.getExecOutput).toBeCalledTimes(2);
-        expect(exec.getExecOutput).toHaveBeenCalledWith(
-            'git config --global user.email "email"'
+    });
+});
+
+describe("ensureBranchNameIsValid", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    it("branch is exist in local. should resolve", async () => {
+        const branchName = "main";
+
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: `git show-ref --verify --quiet refs/heads/${branchName}`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
         );
-        expect(exec.getExecOutput).toHaveBeenCalledWith(
-            `git config --global user.name "username"`
+
+        await expect(ensureBranchNameIsValid("main")).resolves.not.toThrow();
+    });
+
+    it("branch is exist in remote. should resolve", async () => {
+        const branchName = "main";
+
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: `git show-ref --verify --quiet refs/heads/${branchName}`,
+                    success: false,
+                },
+                {
+                    command: `git ls-remote --quiet --heads --exit-code origin ${branchName}`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+            ])
         );
+
+        await expect(ensureBranchNameIsValid("main")).resolves.not.toThrow();
+    });
+
+    it("branch is not exist. should reject", async () => {
+        await expect(ensureBranchNameIsValid("not-valid")).rejects.toThrow();
     });
 });

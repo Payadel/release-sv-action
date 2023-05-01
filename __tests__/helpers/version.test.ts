@@ -75,7 +75,7 @@ describe("versionMustValid", () => {
                 false,
                 versionRegex
             )
-        ).toThrow(
+        ).rejects.toThrow(
             "The version format 'abc' is not valid. If you want, you can change 'version-regex'."
         );
     });
@@ -96,7 +96,7 @@ describe("versionMustValid", () => {
                 false,
                 versionRegex
             )
-        ).toThrow(Error);
+        ).rejects.toThrow(Error);
     });
 
     it("same input and current version with ignoreSameVersionError, expect throw error", () => {
@@ -134,7 +134,7 @@ describe("versionMustValid", () => {
                 ignoreLessVersionError,
                 versionRegex
             )
-        ).toThrow(Error);
+        ).rejects.toThrow(Error);
     });
 
     it("Input version less than current version with ignoreLessVersionError. expect throw error", () => {

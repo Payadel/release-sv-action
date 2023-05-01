@@ -35,7 +35,8 @@
   "homepage": "https://github.com/Payadel/release-sv-action#readme",
   "dependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/exec": "^1.1.1"
+    "@actions/exec": "^1.1.1",
+    "validatorjs": "^3.22.1"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",

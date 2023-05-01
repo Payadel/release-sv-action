@@ -11,29 +11,42 @@ export function versionMustValid(
     ignoreSameVersionError = false,
     ignoreLessVersionError = false,
     versionRegex?: RegExp
-): void {
-    const pattern = versionRegex
-        ? new RegExp(versionRegex)
-        : SEMANTIC_VERSION_REGEX;
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        const pattern = versionRegex
+            ? new RegExp(versionRegex)
+            : SEMANTIC_VERSION_REGEX;
 
-    if (!pattern.test(inputVersion))
-        throw new Error(
-            `The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`
-        );
-    if (
-        !ignoreSameVersionError &&
-        inputVersion.toLowerCase() === currentVersion.toLowerCase()
-    )
-        throw new Error(
-            `The input version '${inputVersion}' is same to the current version. If you want, you can set 'ignore-same-version-error' to ignore this error."`
-        );
-    if (
-        !ignoreLessVersionError &&
-        compareVersions(inputVersion, currentVersion) < 0
-    )
-        throw new Error(
-            `The input version '${inputVersion}' is less than the current version '${currentVersion}'.  If you want, you can set 'ignore-less-version-error' to ignore this error.`
-        );
+        if (!pattern.test(inputVersion)) {
+            return new reject(
+                new Error(
+                    `The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`
+                )
+            );
+        }
+        if (
+            !ignoreSameVersionError &&
+            inputVersion.toLowerCase() === currentVersion.toLowerCase()
+        ) {
+            return new reject(
+                new Error(
+                    `The input version '${inputVersion}' is same to the current version. If you want, you can set 'ignore-same-version-error' to ignore this error."`
+                )
+            );
+        }
+        if (
+            !ignoreLessVersionError &&
+            compareVersions(inputVersion, currentVersion) < 0
+        ) {
+            return new reject(
+                new Error(
+                    `The input version '${inputVersion}' is less than the current version '${currentVersion}'.  If you want, you can set 'ignore-less-version-error' to ignore this error.`
+                )
+            );
+        }
+
+        return resolve();
+    });
 }
 
 export function readVersionFromNpm(package_path: string): Promise<string> {

@@ -9,9 +9,8 @@ import {
     getInputOrDefault,
     readFile,
 } from "../../src/helpers/utility";
-import { mockGetExecOutput } from "../mocks";
+import { mockGetExecOutput, mockGetInput } from "../mocks";
 import * as core from "@actions/core";
-import { mockGetInput } from "../inputs.test";
 
 jest.mock("@actions/core");
 jest.mock("@actions/exec");
@@ -210,11 +209,7 @@ describe("getInputOrDefault", () => {
     it("should return input data", () => {
         jest.spyOn(core, "getInput").mockImplementation(
             (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [{ key: "test", value: "test-value" }],
-                    options
-                )
+                mockGetInput(name, { test: "test-value" }, options)
         );
 
         const input = getInputOrDefault("test", "default");
@@ -251,10 +246,10 @@ describe("getBooleanInputOrDefault", () => {
             (name: string, options?: core.InputOptions | undefined) =>
                 mockGetInput(
                     name,
-                    [
-                        { key: "test1", value: "true" },
-                        { key: "test2", value: "TruE" },
-                    ],
+                    {
+                        test1: "true",
+                        test2: "TruE",
+                    },
                     options
                 )
         );
@@ -269,14 +264,7 @@ describe("getBooleanInputOrDefault", () => {
     it("should return false", () => {
         jest.spyOn(core, "getInput").mockImplementation(
             (name: string, options?: core.InputOptions | undefined) =>
-                mockGetInput(
-                    name,
-                    [
-                        { key: "test1", value: "false" },
-                        { key: "test2", value: "fALsE" },
-                    ],
-                    options
-                )
+                mockGetInput(name, { test1: "false", test2: "fALsE" }, options)
         );
 
         let input = getBooleanInputOrDefault("test1", true);
@@ -291,10 +279,7 @@ describe("getBooleanInputOrDefault", () => {
             (name: string, options?: core.InputOptions | undefined) =>
                 mockGetInput(
                     name,
-                    [
-                        { key: "test1", value: "false" },
-                        { key: "test2", value: "invalid" },
-                    ],
+                    { test1: "false", test2: "invalid" },
                     options
                 )
         );

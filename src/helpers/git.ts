@@ -29,3 +29,15 @@ export function push(): Promise<exec.ExecOutput> {
         execCommand(`git push --follow-tags origin ${currentBranchName}`)
     );
 }
+
+export async function ensureBranchNameIsValid(
+    branchName: string
+): Promise<void> {
+    return execCommand(`git show-ref --verify --quiet refs/heads/${branchName}`)
+        .catch(() =>
+            execCommand(
+                `git ls-remote --quiet --heads --exit-code origin ${branchName}`
+            )
+        )
+        .then(() => Promise.resolve());
+}
