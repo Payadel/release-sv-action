@@ -47,11 +47,11 @@ inputs:
     required: false
   changelog-header-regex:
     description: 'The regex with which we find the header lines in the changelog file.'
-    default: '/#+[ ]+((\[[^\\]]+\]\([^)]+\))|[^ ]+)[ ]+\([^)]+\)/'
+    default: ''
     required: false
   version-regex:
     description: 'The regex that uses to validate versions'
-    default: '/^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+    default: ''
   is-test-mode:
     description: "Set the value 'true' for testing purposes. Default: false"
     required: false

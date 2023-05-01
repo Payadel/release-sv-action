@@ -5,8 +5,9 @@ import { execCommand } from "./utility";
 import { getReleaseCommand, runDry } from "./standard-version";
 import * as core from "@actions/core";
 
-export const SEMANTIC_VERSION_REGEX =
-    /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+export const SEMANTIC_VERSION_REGEX = new RegExp(
+    "^(0|[1-9]\\d*)(\\.\\d+){0,2}(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+);
 
 export function versionMustValid(
     inputVersion: string,

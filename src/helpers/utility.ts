@@ -75,7 +75,7 @@ export function getInputOrDefault(
         return default_value;
     }
 
-    core.debug(`Get ${name}: ${input}`);
+    core.debug(`${name}: ${input}`);
     return input;
 }
 
