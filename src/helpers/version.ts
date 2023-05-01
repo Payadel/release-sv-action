@@ -3,6 +3,7 @@
 import fs from "fs";
 import { execCommand } from "./utility";
 import { getReleaseCommand, runDry } from "./standard-version";
+import * as core from "@actions/core";
 
 export const SEMANTIC_VERSION_REGEX =
     /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
@@ -19,6 +20,7 @@ export function versionMustValid(
             ? new RegExp(versionRegex)
             : SEMANTIC_VERSION_REGEX;
 
+        core.debug(`Test ${inputVersion} with ${pattern.source}.`);
         if (!pattern.test(inputVersion)) {
             return reject(
                 new Error(
@@ -59,6 +61,8 @@ export function readVersionFromNpm(package_path: string): Promise<string> {
             );
         }
         if (!package_path.includes("/")) package_path = `./${package_path}`;
+        core.debug(`Read version from ${package_path}`);
+
         return execCommand(
             `node -p -e "require('${package_path}').version"`,
             `Read version from '${package_path}' failed.`

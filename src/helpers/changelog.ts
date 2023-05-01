@@ -3,10 +3,13 @@ import { readFile } from "./utility";
 import { detectNewVersion } from "./version";
 import * as core from "@actions/core";
 
-export const DEFAULT_CHANGELOG_HEADER_REGEX =
-    /#+( )+((\[[^\]]+]\([^)]+\))|[^ ]+)( )+\([^)]+\)/;
+export const DEFAULT_CHANGELOG_HEADER_REGEX = new RegExp(
+    "#+( )+((\\[[^\\]]+]\\([^)]+\\))|[^ ]+)( )+\\([^)]+\\)"
+);
 
-export const DEFAULT_CHANGELOG_VERSION_REGEX = /(?:[[^]]*]|)s*([a-zA-Z0-9.]+)/;
+export const DEFAULT_CHANGELOG_VERSION_REGEX = new RegExp(
+    "(?:[[^]]*]|)s*([a-zA-Z0-9.]+)"
+);
 
 export interface IChangelogHeader {
     line: string;
@@ -19,12 +22,15 @@ export function readChangelogSection(
     changelogHeaderRegex?: RegExp
 ): Promise<string> {
     return readFile(changelog_file).then(content => {
-        core.debug(`${changelog_file}:\n${content}`);
+        core.debug(`Read ${changelog_file}.`);
 
         const lines = content.split("\n");
+        core.debug(`It has ${lines.length} lines.`);
 
         changelogHeaderRegex =
             changelogHeaderRegex || DEFAULT_CHANGELOG_HEADER_REGEX;
+        core.debug(`Regex: ${changelogHeaderRegex.source}`);
+
         const headerLines = getChangelogHeaders(
             lines,
             undefined,
@@ -33,6 +39,9 @@ export function readChangelogSection(
 
         let targetIndex: number;
         if (targetVersion) {
+            core.debug(
+                `Target version is ${targetVersion}. Try find target index.`
+            );
             // Find target header (with specific version)
             targetIndex = headerLines.findIndex(line =>
                 new RegExp(`\\b${targetVersion.toLowerCase()}\\b`).test(
@@ -45,7 +54,11 @@ export function readChangelogSection(
                         "You can update regex or report this issue with details."
                 );
             }
+            core.debug(`Target index: ${targetIndex}`);
         } else {
+            core.debug(
+                `The targetVersion is not provided. So consider 0 as target index.`
+            );
             targetIndex = 0;
         }
 
@@ -54,6 +67,8 @@ export function readChangelogSection(
             targetIndex + 1 < headerLines.length
                 ? headerLines[targetIndex + 1].index
                 : lines.length;
+
+        core.debug(`Slice from ${startLineIndex} to ${endLineIndex}`);
 
         return lines.slice(startLineIndex, endLineIndex).join("\n");
     });
@@ -64,9 +79,14 @@ export function getChangelogHeaders(
     limit?: number,
     changelogHeaderRegex?: RegExp
 ): IChangelogHeader[] {
+    core.debug(
+        `Try find changelog headers from ${lines.length} lines with limit ${limit}`
+    );
+
     const headerLines: { line: string; index: number }[] = [];
     changelogHeaderRegex =
         changelogHeaderRegex || DEFAULT_CHANGELOG_HEADER_REGEX;
+    core.debug(`Regex is: ${changelogHeaderRegex.source}`);
 
     for (let i = 0; i < lines.length; i++) {
         if (!changelogHeaderRegex.test(lines[i])) continue;
@@ -77,7 +97,7 @@ export function getChangelogHeaders(
     if (headerLines.length === 0) {
         throw new Error(
             "Can not find or detect any changelog header.\n" +
-                `Current regex: ${changelogHeaderRegex}\n` +
+                `Current regex: ${changelogHeaderRegex.source}\n` +
                 `Test on ${lines.length} lines.\n` +
                 "You can update regex or report this issue with details."
         );
@@ -148,9 +168,9 @@ export function getNewestChangelogVersion(
     changelogVersionRegex: RegExp
 ): Promise<string | null> {
     return readFile(changelog_file).then(content => {
-        core.debug(`${changelog_file}:\n${content}`);
-
         const lines = content.split("\n");
+        core.debug(`${changelog_file} was read. It has ${lines.length} lines.`);
+
         const latestHeaderLine = getChangelogHeaders(
             lines,
             1,
