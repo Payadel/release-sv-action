@@ -1,15 +1,12 @@
 import * as core from "@actions/core";
 
-export interface IOutputs {
-    version?: string;
-    releaseFileName?: string;
-    pullRequestUrl?: string;
-    changelog?: string;
+export interface IActionOutputs {
+    version: string;
+    changelog: string;
+    "release-filename"?: string;
+    "pull-request-url"?: string;
 }
 
-export function setOutputs(data: IOutputs): void {
-    core.setOutput("version", data.version);
-    core.setOutput("pull-request-url", data.pullRequestUrl);
-    core.setOutput("release-filename", data.releaseFileName);
-    core.setOutput("changelog", data.changelog);
+export function setOutputs(data: IActionOutputs): void {
+    for (let key of Object.keys(data)) core.setOutput(key, data[key]);
 }
