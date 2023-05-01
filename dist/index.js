@@ -396,7 +396,7 @@ function getInputOrDefault(name, default_value = undefined, trimWhitespace = tru
         core.debug(`Try get ${name} but it is not provided so return default value '${default_value}'`);
         return default_value;
     }
-    core.debug(`Get ${name}: ${input}`);
+    core.debug(`${name}: ${input}`);
     return input;
 }
 exports.getInputOrDefault = getInputOrDefault;
@@ -454,7 +454,7 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 const utility_1 = __nccwpck_require__(8499);
 const standard_version_1 = __nccwpck_require__(6837);
 const core = __importStar(__nccwpck_require__(2186));
-exports.SEMANTIC_VERSION_REGEX = /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+exports.SEMANTIC_VERSION_REGEX = new RegExp("^(0|[1-9]\\d*)(\\.\\d+){0,2}(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$");
 function versionMustValid(inputVersion, currentVersion, ignoreSameVersionError = false, ignoreLessVersionError = false, versionRegex) {
     return new Promise((resolve, reject) => {
         const pattern = versionRegex
