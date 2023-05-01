@@ -7,8 +7,6 @@ import {
 import * as exec from "@actions/exec";
 import { mockGetExecOutput } from "../mocks.utility";
 
-jest.mock("@actions/exec");
-
 function createChangelog(directory: string): string {
     const changelogFile = path.join(directory, "CHANGELOG.md");
     const changelogData = `# Changelog
@@ -48,7 +46,7 @@ describe("readChangelogSection", () => {
     let tempDir;
     let changelogFile;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         // Create temp directory and changelog file
         tempDir = fs.mkdtempSync("/tmp/");
         changelogFile = createChangelog(tempDir);
@@ -91,7 +89,7 @@ describe("readChangelogSection", () => {
 * **deps:** bump Payadel/release-sv-action from 0.2.1 to 0.2.2 ([8f84614](https://github.com/Payadel/changelog-sv-action/commit/8f846147fab9213cff470114c234ce814206c204))
 `;
 
-        const section = await readChangelogSection(changelogFile, undefined);
+        const section = await readChangelogSection(changelogFile);
 
         expect(section).toBe(expectedSection);
     });
@@ -142,10 +140,6 @@ describe("readChangelogSection", () => {
 });
 
 describe("isNeedGenerateChangelog", () => {
-    beforeEach(() => {
-        jest.resetAllMocks();
-    });
-
     it("simple inputs", async () => {
         let result = await isNeedGenerateChangelog("always", "", "");
         expect(result).toBe(true);
@@ -156,10 +150,13 @@ describe("isNeedGenerateChangelog", () => {
 });
 
 describe("isNeedGenerateChangelog-auto", () => {
+    jest.mock("@actions/exec");
     let tempDir;
     let changelogFile;
 
-    beforeEach(async () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+
         // Create temp directory and changelog file
         tempDir = fs.mkdtempSync("/tmp/");
         changelogFile = createChangelog(tempDir);

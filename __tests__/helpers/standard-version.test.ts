@@ -9,10 +9,6 @@ import {
 jest.mock("@actions/exec");
 
 describe("getReleaseCommand", () => {
-    beforeEach(() => {
-        jest.resetAllMocks();
-    });
-
     it("test with params", async () => {
         let skipChangelog = false;
         let inputVersion: string | undefined = undefined;
@@ -32,6 +28,8 @@ describe("getReleaseCommand", () => {
 });
 
 describe("runDry", () => {
+    jest.mock("@actions/exec");
+
     beforeEach(() => {
         jest.resetAllMocks();
     });

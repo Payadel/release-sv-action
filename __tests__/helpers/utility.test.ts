@@ -12,10 +12,9 @@ import {
 import { mockGetExecOutput, mockGetInput } from "../mocks.utility";
 import * as core from "@actions/core";
 
-jest.mock("@actions/core");
-jest.mock("@actions/exec");
-
 describe("execBashCommand", () => {
+    jest.mock("@actions/exec");
+
     beforeEach(() => {
         jest.resetAllMocks();
     });
@@ -58,6 +57,10 @@ describe("execBashCommand", () => {
 });
 
 describe("execCommand", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
     test("should execute command successfully", async () => {
         jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
             mockGetExecOutput(command, [
@@ -133,6 +136,8 @@ describe("readFile", () => {
 });
 
 describe("createReleaseFile", () => {
+    jest.mock("@actions/exec");
+
     beforeEach(() => {
         jest.resetAllMocks();
     });
@@ -206,6 +211,12 @@ describe("createReleaseFile", () => {
 });
 
 describe("getInputOrDefault", () => {
+    jest.mock("@actions/core");
+
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
     it("should return input data", () => {
         jest.spyOn(core, "getInput").mockImplementation(
             (name: string, options?: core.InputOptions | undefined) =>
@@ -230,6 +241,12 @@ describe("getInputOrDefault", () => {
 });
 
 describe("getBooleanInputOrDefault", () => {
+    jest.mock("@actions/core");
+
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
     it("should return default value", () => {
         jest.spyOn(core, "getInput").mockImplementation(
             (name: string, options?: core.InputOptions | undefined) =>

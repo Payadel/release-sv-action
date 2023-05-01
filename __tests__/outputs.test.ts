@@ -4,6 +4,10 @@ import { IActionOutputs, setOutputs } from "../src/outputs";
 jest.mock("@actions/core");
 
 describe("setOutputs", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
     it("should set all outputs", () => {
         const data: IActionOutputs = {
             version: "1.0",
