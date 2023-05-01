@@ -30,18 +30,43 @@ exports.DEFAULT_INPUTS = {
 /***/ }),
 
 /***/ 3062:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getNewestChangelogVersion = exports.isNeedGenerateChangelog = exports.getChangelogHeaders = exports.readChangelogSection = exports.DEFAULT_CHANGELOG_VERSION_REGEX = exports.DEFAULT_CHANGELOG_HEADER_REGEX = void 0;
 const utility_1 = __nccwpck_require__(8499);
 const version_1 = __nccwpck_require__(8882);
+const core = __importStar(__nccwpck_require__(2186));
 exports.DEFAULT_CHANGELOG_HEADER_REGEX = /#+( )+((\[[^\]]+]\([^)]+\))|[^ ]+)( )+\([^)]+\)/;
 exports.DEFAULT_CHANGELOG_VERSION_REGEX = /(?:[[^]]*]|)s*([a-zA-Z0-9.]+)/;
 function readChangelogSection(changelog_file, targetVersion, changelogHeaderRegex) {
     return (0, utility_1.readFile)(changelog_file).then(content => {
+        core.debug(`${changelog_file}:\n${content}`);
         const lines = content.split("\n");
         changelogHeaderRegex =
             changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
@@ -79,6 +104,8 @@ function getChangelogHeaders(lines, limit, changelogHeaderRegex) {
     }
     if (headerLines.length === 0) {
         throw new Error("Can not find or detect any changelog header.\n" +
+            `Current regex: ${changelogHeaderRegex}\n` +
+            `Test on ${lines.length} lines.\n` +
             "You can update regex or report this issue with details.");
     }
     return headerLines;
@@ -115,6 +142,7 @@ function autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex,
 }
 function getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex) {
     return (0, utility_1.readFile)(changelog_file).then(content => {
+        core.debug(`${changelog_file}:\n${content}`);
         const lines = content.split("\n");
         const latestHeaderLine = getChangelogHeaders(lines, 1, changelogHeaderRegex)[0].line;
         const versionMatch = latestHeaderLine.match(changelogVersionRegex);
