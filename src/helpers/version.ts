@@ -58,6 +58,7 @@ export function readVersionFromNpm(package_path: string): Promise<string> {
                 new Error(`Can not find package.json in '${package_path}'.`)
             );
         }
+        if (!package_path.includes("/")) package_path = `./${package_path}`;
         return execCommand(
             `node -p -e "require('${package_path}').version"`,
             `Read version from '${package_path}' failed.`
