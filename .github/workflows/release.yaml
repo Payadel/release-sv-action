@@ -3,24 +3,16 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      skip_release_file:
-        type: boolean
-        required: false
-        default: true
-        description: Skip create release file
-      release_file_name:
-        required: true
-        default: 'release'
-      release_directory:
-        required: true
-        default: '.'
       version:
         required: false
         default: ''
-      skip_changelog:
-        type: boolean
-        default: true
-        description: Skip generate changelog
+      generate-changelog:
+        type: choice
+        default: auto
+        options:
+          - never
+          - always
+          - auto
       create_pr_for_branch:
         required: false
         default: 'main'
@@ -46,10 +38,7 @@ jobs:
 
       - name: Print inputs
         run: |
-          echo "skip_release_file: ${{ inputs.skip_release_file }}"
-          echo "release_file_name: ${{ inputs.release_file_name }}"
-          echo "release_directory: ${{ inputs.release_directory }}"
-          echo "skip_changelog: ${{ inputs.skip_changelog }}"
+          echo "generate-changelog: ${{ inputs.generate-changelog }}"
           echo "version: ${{ inputs.version }}"
           echo "create_pr_for_branch: ${{ inputs.create_pr_for_branch }}"
           echo "Current Branch: $(git rev-parse --abbrev-ref HEAD)"
@@ -58,20 +47,22 @@ jobs:
         uses: ./
         id: release
         with:
-          is-test-mode: false
           version: ${{ inputs.version }}
-          skip-changelog: ${{ inputs.skip_changelog }}
-          skip-release-file: ${{ inputs.skip_release_file }}
-          release-directory: ${{ inputs.release_directory }}
-          release-file-name: ${{ inputs.release_file_name }}
+          generate-changelog: ${{ inputs.generate-changelog }}
           create-pr-for-branch: ${{ inputs.create_pr_for_branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Print outputs
+        run: |
+          echo "version: ${{ steps.release.outputs.version }}"
+          echo "pull-request-url: ${{ steps.release.outputs.pull-request-url }}"
+          echo "release-filename: ${{ steps.release.outputs.release-filename }}"
+
       - name: GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: '${{ steps.release.outputs.releaseFileName }}'
+          artifacts: '${{ steps.release.outputs.release-filename }}'
           allowUpdates: true
-          bodyFile: "CHANGELOG.md"
+          body: ${{ steps.release.outputs.changelog }}
           tag: 'v${{ steps.release.outputs.version }}'

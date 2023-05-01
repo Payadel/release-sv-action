@@ -1,15 +1,15 @@
 {
   "name": "create-release",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Create release base standard-version package",
   "main": "lib/main.js",
   "scripts": {
     "ins": "npm install",
-    "build": "tsc",
+    "build": "rm -r lib; tsc",
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
+    "package": "rm -r dist; ncc build --source-map --license licenses.txt",
     "test": "jest --passWithNoTests",
     "coverage": "jest --coverage",
     "all": "npm run ins && npm run build && npm run format && npm run lint && npm run package && npm test",

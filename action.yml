@@ -5,6 +5,38 @@ author: 'Payadel'
 # Here we define the inputs, which can be set
 # from the workflow file and are consumed in our code
 inputs:
+  version:
+    description: 'Release version. Leave empty for auto detection. Default: ""'
+    default: ''
+    required: false
+  ignore-same-version-error:
+    description: 'ignore the same version error or not? Default: false'
+    required: false
+    default: 'false'
+  ignore-less-version-error:
+    description: 'ignore the less version error or not? Default: false'
+    required: false
+    default: 'false'
+  create-pr-for-branch:
+    description: 'Create pull request for any branch? Leave empty for skip. Default: ""'
+    required: false
+    default: ''
+  generate-changelog:
+    description: 'Options: always, never, auto (Default: auto)'
+    default: "auto"
+    required: false
+  skip-release-file:
+    description: 'Skip create release file or not? Default: true'
+    default: 'true'
+    required: false
+  release-file-name:
+    description: 'Release file name. Default: release'
+    default: "release"
+    required: false
+  release-directory:
+    description: 'Where are the release files?. Default: "."'
+    default: '.'
+    required: false
   git-email:
     description: 'git user.email config for commit. Default: github-action@github.com'
     default: 'github-action@github.com'
@@ -13,29 +45,12 @@ inputs:
     description: 'git user.name config for commit. Default: Github Action'
     default: 'Github Action'
     required: false
-  version:
-    description: 'Release version. Leave empty for auto generate. Default: ""'
+  changelog-header-regex:
+    description: 'The regex with which we find the header lines in the changelog file.'
     default: ''
     required: false
-  skip-changelog:
-    description: 'Skip generate changelog file or not? Default: true'
-    default: "true"
-    required: false
-  skip-release-file:
-    description: 'Skip create release file or not? Default: true'
-    default: true
-    required: false
-  release-file-name:
-    description: 'Release file name. Default: release'
-    default: "release"
-    required: false
-  release-directory:
-    description: 'Where are the release files?. Default: .'
-    default: '.'
-    required: false
-  create-pr-for-branch:
-    description: 'Create pull request for any branch? Leave empty for skip. Default: ""'
-    required: false
+  version-regex:
+    description: 'The regex that uses to validate versions'
     default: ''
   is-test-mode:
     description: "Set the value 'true' for testing purposes. Default: false"
@@ -44,8 +59,12 @@ inputs:
 outputs:
   version:
     description: 'Release version'
-  releaseFileName:
+  pull-request-url:
+    description: 'The pull request link that has been created. ('' if not created)'
+  release-filename:
     description: 'Release file name'
+  changelog:
+    description: 'New changelog text'
 
 runs:
   using: 'node16'

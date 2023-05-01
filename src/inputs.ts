@@ -1,72 +1,135 @@
-import * as core from "@actions/core";
+import { getBooleanInputOrDefault, getInputOrDefault } from "./helpers/utility";
+import { versionMustValid } from "./helpers/version";
+import { ensureBranchNameIsValid } from "./helpers/git";
+import fs from "fs";
 
 export interface IInputs {
-    isTestMode: boolean;
-    gitEmail: string;
-    gitUsername: string;
-    version: string;
-    skipChangelog: boolean;
+    inputVersion?: string;
+    ignoreSameVersionError: boolean;
+    ignoreLessVersionError: boolean;
+    createPrForBranchName?: string;
+    generateChangelog: GenerateChangelogOptions;
     skipReleaseFile: boolean;
     releaseDirectory: string;
     releaseFileName: string;
-    createPrForBranchName: string;
+    isTestMode: boolean;
+    gitEmail: string;
+    gitUsername: string;
+    versionRegex?: RegExp;
+    changelogHeaderRegex?: RegExp;
 }
 
-export function GetInputs(): Promise<IInputs> {
-    return new Promise<IInputs>((resolve, reject) => {
-        try {
-            const inputs: IInputs = {
-                isTestMode: getBooleanInputOrDefault("is-test-mode", false),
-                gitEmail: getInputOrDefault(
-                    "git-email",
-                    "github-action@github.com"
-                ),
-                gitUsername: getInputOrDefault(
-                    "git-user-name",
-                    "Github Action"
-                ),
-                version: getInputOrDefault("version", ""),
-                skipChangelog: getBooleanInputOrDefault("skip-changelog", true),
-                skipReleaseFile: getBooleanInputOrDefault(
-                    "skip-release-file",
-                    true
-                ),
-                releaseDirectory: getInputOrDefault("release-directory", "."),
-                releaseFileName: getInputOrDefault(
-                    "release-file-name",
-                    "release"
-                ),
-                createPrForBranchName: getInputOrDefault(
-                    "create-pr-for-branch",
-                    ""
-                ),
-            };
-            resolve(inputs);
-        } catch (e) {
-            reject(e);
-        }
-    });
+export type GenerateChangelogOptions = "always" | "never" | "auto";
+
+export function getInputsOrDefaults(defaultInputs: IInputs) {
+    return new Promise<IInputs>(resolve =>
+        resolve({
+            inputVersion: getInputOrDefault(
+                "version",
+                defaultInputs.inputVersion
+            ),
+            versionRegex: getRegexOrDefault(
+                "version-regex",
+                defaultInputs.versionRegex
+            ),
+            ignoreLessVersionError: getBooleanInputOrDefault(
+                "ignore-same-version-error",
+                defaultInputs.ignoreLessVersionError
+            )!,
+            ignoreSameVersionError: getBooleanInputOrDefault(
+                "ignore-less-version-error",
+                defaultInputs.ignoreSameVersionError
+            )!,
+            generateChangelog: getGenerateChangelog(
+                defaultInputs.generateChangelog
+            ),
+            isTestMode: getBooleanInputOrDefault(
+                "is-test-mode",
+                defaultInputs.isTestMode
+            )!,
+            gitEmail: getInputOrDefault("git-email", defaultInputs.gitEmail)!,
+            gitUsername: getInputOrDefault(
+                "git-user-name",
+                defaultInputs.gitUsername
+            )!,
+            skipReleaseFile: getBooleanInputOrDefault(
+                "skip-release-file",
+                defaultInputs.skipReleaseFile
+            )!,
+            releaseDirectory: getInputOrDefault(
+                "release-directory",
+                defaultInputs.releaseDirectory
+            )!,
+            releaseFileName: getInputOrDefault(
+                "release-file-name",
+                defaultInputs.releaseFileName
+            )!,
+            createPrForBranchName: getInputOrDefault(
+                "create-pr-for-branch",
+                defaultInputs.createPrForBranchName
+            ),
+            changelogHeaderRegex: getRegexOrDefault(
+                "changelog-header-regex",
+                defaultInputs.changelogHeaderRegex
+            ),
+        })
+    );
 }
 
-export function exportInputsInTestMode(inputs: IInputs): void {
-    for (const key of Object.getOwnPropertyNames(inputs)) {
-        core.setOutput(key, inputs[key]);
+function getGenerateChangelog(
+    default_value: GenerateChangelogOptions
+): GenerateChangelogOptions {
+    const generateChangelog =
+        getInputOrDefault("generate-changelog", undefined)?.toLowerCase() ??
+        default_value;
+    switch (generateChangelog) {
+        case "auto":
+        case "always":
+        case "never":
+            return generateChangelog;
+        default:
+            throw new Error(
+                `The input generate-changelog '${generateChangelog}' is not valid. Supported values are auto, enable, disable`
+            );
     }
 }
 
-function getInputOrDefault(name: string, defaultValue: any): any {
-    let input = core.getInput(name) ?? defaultValue;
-    if (input === "") input = defaultValue;
-
-    core.info(`${name}: ${input}`);
-    return input;
+function getRegexOrDefault(
+    name: string,
+    default_regex: string | RegExp | undefined = undefined
+): RegExp | undefined {
+    const versionRegexStr = getInputOrDefault(name, undefined);
+    if (versionRegexStr) return new RegExp(versionRegexStr);
+    return default_regex ? new RegExp(default_regex) : undefined;
 }
 
-function getBooleanInputOrDefault(
-    name: string,
-    defaultValue: boolean
-): boolean {
-    const input = core.getBooleanInput(name) ?? defaultValue;
-    core.info(`${name}: ${input}`);
-    return input;
+export function validateInputs(
+    inputs: IInputs,
+    currentVersion: string
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        if (!inputs.inputVersion) return resolve();
+        return versionMustValid(
+            inputs.inputVersion,
+            currentVersion,
+            inputs.ignoreSameVersionError,
+            inputs.ignoreLessVersionError
+        )
+            .then(resolve)
+            .catch(reject);
+    })
+        .then(() => {
+            if (!fs.existsSync(inputs.releaseDirectory)) {
+                return Promise.reject(
+                    new Error(
+                        `The directory '${inputs.releaseDirectory}' does not exists.`
+                    )
+                );
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (!inputs.createPrForBranchName) return Promise.resolve();
+            return ensureBranchNameIsValid(inputs.createPrForBranchName);
+        });
 }
