@@ -1,4 +1,4 @@
 import run from "./run";
 import { DEFAULT_INPUTS } from "./configs";
 
-run(DEFAULT_INPUTS);
+run(DEFAULT_INPUTS, "package.json", "CHANGELOG.md");

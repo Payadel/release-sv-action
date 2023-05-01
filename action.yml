@@ -22,7 +22,7 @@ inputs:
     required: false
     default: ''
   generate-changelog:
-    description: 'values: always, never, auto (Default: auto)'
+    description: 'Options: always, never, auto (Default: auto)'
     default: "auto"
     required: false
   skip-release-file:
