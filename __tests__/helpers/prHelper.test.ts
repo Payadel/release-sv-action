@@ -27,7 +27,7 @@ describe("createPullRequest", () => {
                     },
                 },
                 {
-                    command: `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
+                    command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
                     success: true,
                     resolve: {
                         stdout:
@@ -66,7 +66,7 @@ describe("createPullRequest", () => {
                     },
                 },
                 {
-                    command: `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
+                    command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
                     success: true,
                     resolve: {
                         stdout: prLink,
@@ -102,7 +102,7 @@ describe("createPullRequest", () => {
                     },
                 },
                 {
-                    command: `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
+                    command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
                     success: false,
                     rejectMessage:
                         "Warning: 7 uncommitted changes\n" +
@@ -110,7 +110,7 @@ describe("createPullRequest", () => {
                         "https://github.com/user/repo/pull/1000\n",
                 },
                 {
-                    command: `gh pr edit ${prLink} --body ${body}`,
+                    command: `gh pr edit "${prLink}" --body "${body}"`,
                     success: true,
                     resolve: {
                         stdout: prLink,
@@ -142,7 +142,7 @@ describe("createPullRequest", () => {
                     },
                 },
                 {
-                    command: `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
+                    command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
                     success: false,
                     rejectMessage:
                         "Warning: 7 uncommitted changes\n" +
@@ -176,7 +176,7 @@ describe("createPullRequest", () => {
                     },
                 },
                 {
-                    command: `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
+                    command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
                     success: false,
                     rejectMessage:
                         "Warning: 7 uncommitted changes\n" +
@@ -184,7 +184,7 @@ describe("createPullRequest", () => {
                         "https://github.com/user/repo/pull/1000\n",
                 },
                 {
-                    command: `gh pr edit ${prLink} --body ${body}`,
+                    command: `gh pr edit "${prLink}" --body "${body}"`,
                     success: false,
                     rejectMessage: "Operation failed",
                 },
