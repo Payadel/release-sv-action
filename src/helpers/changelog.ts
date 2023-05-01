@@ -1,6 +1,7 @@
 import { GenerateChangelogOptions } from "../inputs";
 import { readFile } from "./utility";
 import { detectNewVersion } from "./version";
+import * as core from "@actions/core";
 
 export const DEFAULT_CHANGELOG_HEADER_REGEX =
     /#+( )+((\[[^\]]+]\([^)]+\))|[^ ]+)( )+\([^)]+\)/;
@@ -18,6 +19,8 @@ export function readChangelogSection(
     changelogHeaderRegex?: RegExp
 ): Promise<string> {
     return readFile(changelog_file).then(content => {
+        core.debug(`${changelog_file}:\n${content}`);
+
         const lines = content.split("\n");
 
         changelogHeaderRegex =
@@ -74,6 +77,8 @@ export function getChangelogHeaders(
     if (headerLines.length === 0) {
         throw new Error(
             "Can not find or detect any changelog header.\n" +
+                `Current regex: ${changelogHeaderRegex}\n` +
+                `Test on ${lines.length} lines.\n` +
                 "You can update regex or report this issue with details."
         );
     }
@@ -143,6 +148,8 @@ export function getNewestChangelogVersion(
     changelogVersionRegex: RegExp
 ): Promise<string | null> {
     return readFile(changelog_file).then(content => {
+        core.debug(`${changelog_file}:\n${content}`);
+
         const lines = content.split("\n");
         const latestHeaderLine = getChangelogHeaders(
             lines,
