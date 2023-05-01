@@ -23,8 +23,12 @@ function createOrUpdatePr(
     currentBranchName: string,
     body: string
 ): Promise<exec.ExecOutput> {
+    createPrForBranchName = encodeDoubleQuotation(createPrForBranchName);
+    currentBranchName = encodeDoubleQuotation(currentBranchName);
+    body = encodeDoubleQuotation(body);
+
     return execCommand(
-        `gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`,
+        `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
         `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`
     ).catch(e => {
         const message = e instanceof Error ? e.message : e.toString();
@@ -52,8 +56,14 @@ function updatePr(
     prLinkOrNumber: string,
     body: string
 ): Promise<exec.ExecOutput> {
+    prLinkOrNumber = encodeDoubleQuotation(prLinkOrNumber);
+    body = encodeDoubleQuotation(body);
     return execCommand(
-        `gh pr edit ${prLinkOrNumber} --body ${body}`,
+        `gh pr edit "${prLinkOrNumber}" --body "${body}"`,
         `Update pull request '${prLinkOrNumber}' failed.`
     );
+}
+
+function encodeDoubleQuotation(text: string): string {
+    return text.replace(/"/g, '"');
 }
