@@ -30,14 +30,44 @@ export function push(): Promise<exec.ExecOutput> {
     );
 }
 
-export async function ensureBranchNameIsValid(
+export function ensureBranchNameIsValid(branchName: string): Promise<void> {
+    return isBranchNameExistsInLocal(branchName).then(isExistInLocal => {
+        if (isExistInLocal) return;
+        return isBranchNameExistsInRemote(branchName).then(isExistInRemote => {
+            if (isExistInRemote) return;
+            throw new Error(`The branch '${branchName}' is not valid.`);
+        });
+    });
+}
+
+export function isBranchNameExistsInLocal(
     branchName: string
-): Promise<void> {
-    return execCommand(`git show-ref --verify --quiet refs/heads/${branchName}`)
-        .catch(() =>
-            execCommand(
-                `git ls-remote --quiet --heads --exit-code origin ${branchName}`
-            )
-        )
-        .then(() => Promise.resolve());
+): Promise<boolean> {
+    return execCommand(
+        `git show-ref --verify refs/heads/${branchName}`,
+        `Failed to check is branch '${branchName}' exists in local.`,
+        [],
+        { ignoreReturnCode: true }
+    ).then(output => {
+        if (output.exitCode === 0) return true;
+        const message = `${output.stderr}\n${output.stdout}`;
+        if (message.toLowerCase().includes(" - not a valid ref")) return false;
+        throw new Error(`An unknown error occurred.\n${message}`);
+    });
+}
+
+export function isBranchNameExistsInRemote(
+    branchName: string
+): Promise<boolean> {
+    return execCommand(
+        `git ls-remote --quiet --heads --exit-code origin ${branchName}`,
+        `Failed to check is branch '${branchName}' exists in remote.`,
+        [],
+        { ignoreReturnCode: true }
+    ).then(output => {
+        if (output.exitCode === 0) return true;
+        if (output.exitCode === 2) return false;
+        const message = `${output.stderr}\n${output.stdout}`;
+        throw new Error(`An unknown error occurred.\n${message}`);
+    });
 }

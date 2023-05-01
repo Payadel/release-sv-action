@@ -157,7 +157,7 @@ describe("ensureBranchNameIsValid", () => {
         jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
             mockGetExecOutput(command, [
                 {
-                    command: `git show-ref --verify --quiet refs/heads/${branchName}`,
+                    command: `git show-ref --verify refs/heads/${branchName}`,
                     success: true,
                     resolve: {
                         stdout: "",
@@ -177,8 +177,13 @@ describe("ensureBranchNameIsValid", () => {
         jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
             mockGetExecOutput(command, [
                 {
-                    command: `git show-ref --verify --quiet refs/heads/${branchName}`,
-                    success: false,
+                    command: `git show-ref --verify refs/heads/${branchName}`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 127,
+                        stderr: `fatal: 'refs/heads/${branchName}' - not a valid ref`,
+                    },
                 },
                 {
                     command: `git ls-remote --quiet --heads --exit-code origin ${branchName}`,
@@ -196,6 +201,118 @@ describe("ensureBranchNameIsValid", () => {
     });
 
     it("branch is not exist. should reject", async () => {
-        await expect(ensureBranchNameIsValid("not-valid")).rejects.toThrow();
+        const branchName = "invalid";
+
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: `git show-ref --verify refs/heads/${branchName}`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 127,
+                        stderr: `fatal: 'refs/heads/${branchName}' - not a valid ref`,
+                    },
+                },
+                {
+                    command: `git ls-remote --quiet --heads --exit-code origin ${branchName}`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 2,
+                        stderr: "",
+                    },
+                },
+            ])
+        );
+
+        await expect(ensureBranchNameIsValid(branchName)).rejects.toThrow(
+            `The branch '${branchName}' is not valid.`
+        );
+    });
+
+    it("An error occurred, should reject", async () => {
+        jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
+            mockGetExecOutput(command, [
+                {
+                    command: `git show-ref --verify refs/heads/success-success`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 127,
+                        stderr: `fatal: 'refs/heads/success' - not a valid ref`,
+                    },
+                },
+                {
+                    command: `git ls-remote --quiet --heads --exit-code origin success-success`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 0,
+                        stderr: "",
+                    },
+                },
+                {
+                    command: `git show-ref --verify refs/heads/success-fail`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 127,
+                        stderr: `fatal: 'refs/heads/success' - not a valid ref`,
+                    },
+                },
+                {
+                    command: `git ls-remote --quiet --heads --exit-code origin success-fail`,
+                    success: false,
+                    rejectMessage: "fail",
+                },
+                {
+                    command: `git show-ref --verify refs/heads/fail`,
+                    success: false,
+                    rejectMessage: "fail",
+                },
+                {
+                    command: `git show-ref --verify refs/heads/failWithExitCode`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 10,
+                        stderr: `error`,
+                    },
+                },
+                {
+                    command: `git show-ref --verify refs/heads/success-failWithExitCode`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 127,
+                        stderr: `fatal: 'refs/heads/success' - not a valid ref`,
+                    },
+                },
+                {
+                    command: `git ls-remote --quiet --heads --exit-code origin success-failWithExitCode`,
+                    success: true,
+                    resolve: {
+                        stdout: "",
+                        exitCode: 127,
+                        stderr: "error",
+                    },
+                },
+            ])
+        );
+
+        await expect(ensureBranchNameIsValid("success-success")).resolves;
+        await expect(ensureBranchNameIsValid("success-fail")).rejects.toThrow(
+            "Failed to check is branch 'success-fail' exists in remote."
+        );
+        await expect(ensureBranchNameIsValid("fail")).rejects.toThrow(
+            "Failed to check is branch 'fail' exists in local."
+        );
+        await expect(
+            ensureBranchNameIsValid("failWithExitCode")
+        ).rejects.toThrow("An unknown error occurred.\n" + "error");
+        await expect(
+            ensureBranchNameIsValid("success-failWithExitCode")
+        ).rejects.toThrow("An unknown error occurred.\n" + "error");
     });
 });
