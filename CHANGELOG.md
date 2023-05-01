@@ -8,7 +8,6 @@ All notable changes to this project will be documented in this file. See [standa
 ### ⚠ BREAKING CHANGES
 
 * rename `releaseFileName` output to `release-filename`
-* remove `exportInputsInTestMode`
 
 ### Features
 
@@ -21,22 +20,8 @@ All notable changes to this project will be documented in this file. See [standa
 * validate version pattern ([8f69c21](https://github.com/Payadel/release-sv-action/commit/8f69c2114acf1af683e955d3c378dae9e10d3384))
 
 
-### Refactors
-
-* add `configs.ts` and `DEFAULT_INPUTS` in it ([4427742](https://github.com/Payadel/release-sv-action/commit/4427742c9543c3bdd01e08ddd20063c4c0732633))
-* classify functions ([67388b6](https://github.com/Payadel/release-sv-action/commit/67388b62af81357fea5956fb030ddabb0a424335))
-* improve outputs ([ddd2b22](https://github.com/Payadel/release-sv-action/commit/ddd2b225ab97b75768b1a952ea12f4abdec5f177))
-* move fet input functions to utility.ts ([a909df3](https://github.com/Payadel/release-sv-action/commit/a909df38c4e32d235578665e47445549eacb4fb5))
-* refactor inputs ([8c03529](https://github.com/Payadel/release-sv-action/commit/8c03529c150ef8eabf838547cbdbe9a7b74667b3))
-* refactor to new style of payadel template ([a200b41](https://github.com/Payadel/release-sv-action/commit/a200b41b5c56e134ecae0fb3e64bfc808e046459))
-* reorder action.yml ([3107292](https://github.com/Payadel/release-sv-action/commit/31072926b9546d4a082dc4940cc012de5caef7df))
-* reorder DEFAULT_INPUTS ([939da79](https://github.com/Payadel/release-sv-action/commit/939da79b63a6b91a840f8e3c75c539f204564bf5))
-
-
 ### Fixes
 
-* add debug logs ([cec59f5](https://github.com/Payadel/release-sv-action/commit/cec59f5e187df77b958b73fd3e4cfb8407299901))
-* add debug logs to changelog.ts ([1419197](https://github.com/Payadel/release-sv-action/commit/1419197b85e7609aecaa9ce9c2df3bf91be8b347))
 * fix `changelog-version-regex` ([ba66ba9](https://github.com/Payadel/release-sv-action/commit/ba66ba953fe9f333271c08bb9e438b5457b67907))
 * fix `getBooleanInputOrDefault` & refactor & add tests ([d1c1ec5](https://github.com/Payadel/release-sv-action/commit/d1c1ec57aa97d5c6d6aef49d6f5e85a8eeff84cd))
 * fix `readVersionFromNpm` ([a99b097](https://github.com/Payadel/release-sv-action/commit/a99b09778766c33e51b7f4328a3ca4ae30653876))
@@ -53,11 +38,21 @@ All notable changes to this project will be documented in this file. See [standa
 * improve pull request commands ([6b6b5c1](https://github.com/Payadel/release-sv-action/commit/6b6b5c111614913a2851a1fce705d97d596483dc))
 * minor updates ([b76dcdc](https://github.com/Payadel/release-sv-action/commit/b76dcdcc3af80e5ff012fa72aad974a221872ad1))
 * remove `exportInputsInTestMode` ([1957f52](https://github.com/Payadel/release-sv-action/commit/1957f52fc50e5683e421d7ac13292a37b027bb74))
-* remove default value of regex in action.yml & minor updates ([34b3d03](https://github.com/Payadel/release-sv-action/commit/34b3d03a57f878e5d1c45e88d249810029425a55))
-* remove excess logs, improve codes & error messages & refactor ([eef9330](https://github.com/Payadel/release-sv-action/commit/eef93307ff4e503746d8f9352cc8c4d4b5ef63f0))
 * rename `releaseFileName` output to `release-filename` ([dad6304](https://github.com/Payadel/release-sv-action/commit/dad6304420abbc0373cb0c60e1f626491d117bdc))
 * set `releaseFileName` to output ([8b98828](https://github.com/Payadel/release-sv-action/commit/8b98828bd5641bfcf2f2be657672f07a95366919))
 * set new version to output ([dc06339](https://github.com/Payadel/release-sv-action/commit/dc0633920eab1354471072a6e659482bd4965edc))
+
+
+### Refactors
+
+* add `configs.ts` and `DEFAULT_INPUTS` in it ([4427742](https://github.com/Payadel/release-sv-action/commit/4427742c9543c3bdd01e08ddd20063c4c0732633))
+* classify functions ([67388b6](https://github.com/Payadel/release-sv-action/commit/67388b62af81357fea5956fb030ddabb0a424335))
+* improve outputs ([ddd2b22](https://github.com/Payadel/release-sv-action/commit/ddd2b225ab97b75768b1a952ea12f4abdec5f177))
+* move get input functions to utility.ts ([a909df3](https://github.com/Payadel/release-sv-action/commit/a909df38c4e32d235578665e47445549eacb4fb5))
+* refactor inputs ([8c03529](https://github.com/Payadel/release-sv-action/commit/8c03529c150ef8eabf838547cbdbe9a7b74667b3))
+* refactor to new style of payadel template ([a200b41](https://github.com/Payadel/release-sv-action/commit/a200b41b5c56e134ecae0fb3e64bfc808e046459))
+* reorder action.yml ([3107292](https://github.com/Payadel/release-sv-action/commit/31072926b9546d4a082dc4940cc012de5caef7df))
+* reorder DEFAULT_INPUTS ([939da79](https://github.com/Payadel/release-sv-action/commit/939da79b63a6b91a840f8e3c75c539f204564bf5))
 
 
 ### Tests
