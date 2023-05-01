@@ -1,4 +1,7 @@
 import { getBooleanInputOrDefault, getInputOrDefault } from "./helpers/utility";
+import { versionMustValid } from "./helpers/version";
+import { ensureBranchNameIsValid } from "./helpers/git";
+import fs from "fs";
 
 export interface IInputs {
     inputVersion?: string;
@@ -98,4 +101,35 @@ function getRegexOrDefault(
     const versionRegexStr = getInputOrDefault(name, undefined);
     if (versionRegexStr) return new RegExp(versionRegexStr);
     return default_regex ? new RegExp(default_regex) : undefined;
+}
+
+export function validateInputs(
+    inputs: IInputs,
+    currentVersion: string
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        if (!inputs.inputVersion) return resolve();
+        return versionMustValid(
+            inputs.inputVersion,
+            currentVersion,
+            inputs.ignoreSameVersionError,
+            inputs.ignoreLessVersionError
+        )
+            .then(resolve)
+            .catch(reject);
+    })
+        .then(() => {
+            if (!fs.existsSync(inputs.releaseDirectory)) {
+                return Promise.reject(
+                    new Error(
+                        `The directory '${inputs.releaseDirectory}' does not exists.`
+                    )
+                );
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (!inputs.createPrForBranchName) return Promise.resolve();
+            return ensureBranchNameIsValid(inputs.createPrForBranchName);
+        });
 }

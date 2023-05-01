@@ -3,7 +3,9 @@
 import fs from "fs";
 import { execCommand } from "./utility";
 import { getReleaseCommand, runDry } from "./standard-version";
-import { SEMANTIC_VERSION_REGEX } from "../configs";
+
+export const SEMANTIC_VERSION_REGEX =
+    /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
 export function versionMustValid(
     inputVersion: string,
@@ -18,7 +20,7 @@ export function versionMustValid(
             : SEMANTIC_VERSION_REGEX;
 
         if (!pattern.test(inputVersion)) {
-            return new reject(
+            return reject(
                 new Error(
                     `The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`
                 )
@@ -28,7 +30,7 @@ export function versionMustValid(
             !ignoreSameVersionError &&
             inputVersion.toLowerCase() === currentVersion.toLowerCase()
         ) {
-            return new reject(
+            return reject(
                 new Error(
                     `The input version '${inputVersion}' is same to the current version. If you want, you can set 'ignore-same-version-error' to ignore this error."`
                 )
@@ -38,7 +40,7 @@ export function versionMustValid(
             !ignoreLessVersionError &&
             compareVersions(inputVersion, currentVersion) < 0
         ) {
-            return new reject(
+            return reject(
                 new Error(
                     `The input version '${inputVersion}' is less than the current version '${currentVersion}'.  If you want, you can set 'ignore-less-version-error' to ignore this error.`
                 )

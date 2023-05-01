@@ -64,17 +64,10 @@ describe("versionMustValid", () => {
         // Arrange
         const inputVersion = "abc";
         const currentVersion = "1.0.0";
-        const versionRegex = DEFAULT_INPUTS.versionRegex;
 
         // Act & Assert
         expect(() =>
-            versionMustValid(
-                inputVersion,
-                currentVersion,
-                false,
-                false,
-                versionRegex
-            )
+            versionMustValid(inputVersion, currentVersion, false, false)
         ).rejects.toThrow(
             "The version format 'abc' is not valid. If you want, you can change 'version-regex'."
         );
