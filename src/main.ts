@@ -1,3 +1,4 @@
 import run from "./run";
+import { DEFAULT_INPUTS } from "./configs";
 
-run();
+run(DEFAULT_INPUTS);

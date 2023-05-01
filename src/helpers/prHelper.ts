@@ -10,14 +10,12 @@ export async function createPullRequest(
         .then(currentBranchName =>
             createOrUpdatePr(createPrForBranchName, currentBranchName, body)
         )
-        .then(output => {
-            const link = getPrLink(output.stdout);
-            if (!link)
-                throw new Error(
-                    `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`
-                );
-            return link;
-        });
+        .then(output =>
+            getPrLink(
+                output.stdout,
+                `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`
+            )
+        );
 }
 
 function createOrUpdatePr(
@@ -31,22 +29,23 @@ function createOrUpdatePr(
     ).catch(e => {
         const message = e instanceof Error ? e.message : e.toString();
         if (message.toLowerCase().includes("already exists")) {
-            const prLink = getPrLink(message);
-            if (!prLink) {
-                throw new Error(
-                    `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.`
-                );
-            }
-            return updatePr(prLink, body);
+            return getPrLink(
+                message,
+                `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.`
+            ).then(prLink => updatePr(prLink, body));
         }
-        return e;
+        throw e;
     });
 }
 
-function getPrLink(str: string): string | null {
-    const regex = /(https*:\/\/)?github\.com\/\S+\/\S+\/pull\/\d+/;
-    const urlMatch = str.match(regex);
-    return urlMatch ? urlMatch[0] : null;
+function getPrLink(str: string, errorMessage?: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        const regex = /(https*:\/\/)?github\.com\/\S+\/\S+\/pull\/\d+/;
+        const urlMatch = str.match(regex);
+        return urlMatch
+            ? resolve(urlMatch[0])
+            : reject(errorMessage ? new Error(errorMessage) : undefined);
+    });
 }
 
 function updatePr(

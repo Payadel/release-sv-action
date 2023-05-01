@@ -105,13 +105,6 @@ describe("validateInputs", () => {
         );
     });
 
-    // it("release directory is not exists. should throw error", async () => {
-    //     const inputs = DEFAULT_INPUTS;
-    //     inputs.releaseDirectory = "invalid";
-    //
-    //     await expect(validateInputs(inputs, '0')).rejects.toThrow(`The directory '${inputs.releaseDirectory}' does not exists.`);
-    // });
-
     it("give valid version, should resolve", async () => {
         const inputs = DEFAULT_INPUTS;
 
