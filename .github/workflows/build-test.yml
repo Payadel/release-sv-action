@@ -46,7 +46,7 @@ jobs:
           version: 100.100.100
           ignore-same-version-error: true
           ignore-less-version-error: true
-          create-pr-for-branch: branch-name
+          create-pr-for-branch: main
           generate-changelog: auto
           skip-release-file: false
           release-directory: .
