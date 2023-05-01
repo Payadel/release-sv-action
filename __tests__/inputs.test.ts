@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import { getInputsOrDefaults, validateInputs } from "../src/inputs";
-import { mockGetExecOutput, mockGetInput } from "./mocks";
+import { mockGetExecOutput, mockGetInput } from "./mocks.utility";
 import { DEFAULT_INPUTS } from "../src/configs";
 import * as exec from "@actions/exec";
 

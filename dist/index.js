@@ -1,34 +1,537 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 6180:
+/***/ 7905:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInputs = void 0;
-const utility_1 = __nccwpck_require__(2857);
-const version_1 = __nccwpck_require__(8217);
-function getInputs() {
+exports.DEFAULT_INPUTS = void 0;
+const changelog_1 = __nccwpck_require__(3062);
+const version_1 = __nccwpck_require__(8882);
+exports.DEFAULT_INPUTS = {
+    inputVersion: "",
+    ignoreSameVersionError: false,
+    ignoreLessVersionError: false,
+    createPrForBranchName: "",
+    generateChangelog: "auto",
+    skipReleaseFile: true,
+    releaseDirectory: ".",
+    releaseFileName: "release",
+    isTestMode: false,
+    gitEmail: "github-action@github.com",
+    gitUsername: "Github Action",
+    versionRegex: version_1.SEMANTIC_VERSION_REGEX,
+    changelogHeaderRegex: changelog_1.DEFAULT_CHANGELOG_HEADER_REGEX,
+};
+//# sourceMappingURL=configs.js.map
+
+/***/ }),
+
+/***/ 3062:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getNewestChangelogVersion = exports.isNeedGenerateChangelog = exports.getChangelogHeaders = exports.readChangelogSection = exports.DEFAULT_CHANGELOG_VERSION_REGEX = exports.DEFAULT_CHANGELOG_HEADER_REGEX = void 0;
+const utility_1 = __nccwpck_require__(8499);
+const version_1 = __nccwpck_require__(8882);
+exports.DEFAULT_CHANGELOG_HEADER_REGEX = /#+( )+((\[[^\]]+]\([^)]+\))|[^ ]+)( )+\([^)]+\)/;
+exports.DEFAULT_CHANGELOG_VERSION_REGEX = /(?:[[^]]*]|)s*([a-zA-Z0-9.]+)/;
+function readChangelogSection(changelog_file, targetVersion, changelogHeaderRegex) {
+    return (0, utility_1.readFile)(changelog_file).then(content => {
+        const lines = content.split("\n");
+        changelogHeaderRegex =
+            changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
+        const headerLines = getChangelogHeaders(lines, undefined, changelogHeaderRegex);
+        let targetIndex;
+        if (targetVersion) {
+            // Find target header (with specific version)
+            targetIndex = headerLines.findIndex(line => new RegExp(`\\b${targetVersion.toLowerCase()}\\b`).test(line.line));
+            if (targetIndex < 0) {
+                throw new Error(`Can not find or detect any changelog with version ${targetVersion}.\n` +
+                    "You can update regex or report this issue with details.");
+            }
+        }
+        else {
+            targetIndex = 0;
+        }
+        const startLineIndex = headerLines[targetIndex].index;
+        const endLineIndex = targetIndex + 1 < headerLines.length
+            ? headerLines[targetIndex + 1].index
+            : lines.length;
+        return lines.slice(startLineIndex, endLineIndex).join("\n");
+    });
+}
+exports.readChangelogSection = readChangelogSection;
+function getChangelogHeaders(lines, limit, changelogHeaderRegex) {
+    const headerLines = [];
+    changelogHeaderRegex =
+        changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
+    for (let i = 0; i < lines.length; i++) {
+        if (!changelogHeaderRegex.test(lines[i]))
+            continue;
+        headerLines.push({ line: lines[i], index: i });
+        if (limit && headerLines.length >= limit)
+            return headerLines;
+    }
+    if (headerLines.length === 0) {
+        throw new Error("Can not find or detect any changelog header.\n" +
+            "You can update regex or report this issue with details.");
+    }
+    return headerLines;
+}
+exports.getChangelogHeaders = getChangelogHeaders;
+function isNeedGenerateChangelog(generateChangelogOption, changelog_file, inputVersion, changelogHeaderRegex, changelogVersionRegex) {
     return new Promise((resolve, reject) => {
-        const version = (0, utility_1.getInputOrDefault)("version", "", true, false);
-        if (version && !(0, version_1.isVersionValid)(version))
-            return reject(new Error("The input version is not valid."));
-        return resolve({
-            version,
-            isTestMode: (0, utility_1.getBooleanInputOrDefault)("is-test-mode", false),
-            gitEmail: (0, utility_1.getInputOrDefault)("git-email", "github-action@github.com"),
-            gitUsername: (0, utility_1.getInputOrDefault)("git-user-name", "Github Action"),
-            skipChangelog: (0, utility_1.getBooleanInputOrDefault)("skip-changelog", true),
-            skipReleaseFile: (0, utility_1.getBooleanInputOrDefault)("skip-release-file", true),
-            releaseDirectory: (0, utility_1.getInputOrDefault)("release-directory", "."),
-            releaseFileName: (0, utility_1.getInputOrDefault)("release-file-name", "release"),
-            createPrForBranchName: (0, utility_1.getInputOrDefault)("create-pr-for-branch", ""),
+        switch (generateChangelogOption) {
+            case "never":
+                return resolve(false);
+            case "always":
+                return resolve(true);
+            case "auto":
+                changelogHeaderRegex =
+                    changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
+                changelogVersionRegex =
+                    changelogVersionRegex || exports.DEFAULT_CHANGELOG_VERSION_REGEX;
+                return autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex, changelogVersionRegex, inputVersion)
+                    .then(resolve)
+                    .catch(reject);
+            default:
+                return new reject(`The generate changelog option (${generateChangelogOption}) is not supported.`);
+        }
+    });
+}
+exports.isNeedGenerateChangelog = isNeedGenerateChangelog;
+function autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex, changelogVersionRegex, inputVersion) {
+    return (0, version_1.detectNewVersion)(inputVersion).then(newVersion => getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex).then(newestChangelogVersion => {
+        if (!newestChangelogVersion)
+            return true;
+        return (newVersion.toLowerCase() !==
+            newestChangelogVersion.toLowerCase());
+    }));
+}
+function getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex) {
+    return (0, utility_1.readFile)(changelog_file).then(content => {
+        const lines = content.split("\n");
+        const latestHeaderLine = getChangelogHeaders(lines, 1, changelogHeaderRegex)[0].line;
+        const versionMatch = latestHeaderLine.match(changelogVersionRegex);
+        return versionMatch ? versionMatch[0] : null;
+    });
+}
+exports.getNewestChangelogVersion = getNewestChangelogVersion;
+//# sourceMappingURL=changelog.js.map
+
+/***/ }),
+
+/***/ 7052:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isBranchNameExistsInRemote = exports.isBranchNameExistsInLocal = exports.ensureBranchNameIsValid = exports.push = exports.setGitConfigs = exports.getGitRootDir = exports.getCurrentBranchName = void 0;
+const utility_1 = __nccwpck_require__(8499);
+function getCurrentBranchName() {
+    return (0, utility_1.execCommand)("git rev-parse --abbrev-ref HEAD", "Detect current branch name failed.").then(result => result.stdout.trim());
+}
+exports.getCurrentBranchName = getCurrentBranchName;
+function getGitRootDir() {
+    return (0, utility_1.execCommand)("git rev-parse --show-toplevel", "find git root directory failed.").then(output => output.stdout.trim());
+}
+exports.getGitRootDir = getGitRootDir;
+function setGitConfigs(email, username) {
+    return (0, utility_1.execCommand)(`git config --global user.email "${email}"`).then(() => (0, utility_1.execCommand)(`git config --global user.name "${username}"`));
+}
+exports.setGitConfigs = setGitConfigs;
+function push() {
+    return getCurrentBranchName().then(currentBranchName => (0, utility_1.execCommand)(`git push --follow-tags origin ${currentBranchName}`));
+}
+exports.push = push;
+function ensureBranchNameIsValid(branchName) {
+    return isBranchNameExistsInLocal(branchName).then(isExistInLocal => {
+        if (isExistInLocal)
+            return;
+        return isBranchNameExistsInRemote(branchName).then(isExistInRemote => {
+            if (isExistInRemote)
+                return;
+            throw new Error(`The branch '${branchName}' is not valid.`);
         });
     });
 }
-exports.getInputs = getInputs;
+exports.ensureBranchNameIsValid = ensureBranchNameIsValid;
+function isBranchNameExistsInLocal(branchName) {
+    return (0, utility_1.execCommand)(`git show-ref --verify refs/heads/${branchName}`, `Failed to check is branch '${branchName}' exists in local.`, [], { ignoreReturnCode: true }).then(output => {
+        if (output.exitCode === 0)
+            return true;
+        const message = `${output.stderr}\n${output.stdout}`;
+        if (message.toLowerCase().includes(" - not a valid ref"))
+            return false;
+        throw new Error(`An unknown error occurred.\n${message}`);
+    });
+}
+exports.isBranchNameExistsInLocal = isBranchNameExistsInLocal;
+function isBranchNameExistsInRemote(branchName) {
+    return (0, utility_1.execCommand)(`git ls-remote --quiet --heads --exit-code origin ${branchName}`, `Failed to check is branch '${branchName}' exists in remote.`, [], { ignoreReturnCode: true }).then(output => {
+        if (output.exitCode === 0)
+            return true;
+        if (output.exitCode === 2)
+            return false;
+        const message = `${output.stderr}\n${output.stdout}`;
+        throw new Error(`An unknown error occurred.\n${message}`);
+    });
+}
+exports.isBranchNameExistsInRemote = isBranchNameExistsInRemote;
+//# sourceMappingURL=git.js.map
+
+/***/ }),
+
+/***/ 2061:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createPullRequest = void 0;
+const utility_1 = __nccwpck_require__(8499);
+const git_1 = __nccwpck_require__(7052);
+function createPullRequest(createPrForBranchName, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return (0, git_1.getCurrentBranchName)()
+            .then(currentBranchName => createOrUpdatePr(createPrForBranchName, currentBranchName, body))
+            .then(output => getPrLink(output.stdout, `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`));
+    });
+}
+exports.createPullRequest = createPullRequest;
+function createOrUpdatePr(createPrForBranchName, currentBranchName, body) {
+    return (0, utility_1.execCommand)(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body ${body}`, `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`).catch(e => {
+        const message = e instanceof Error ? e.message : e.toString();
+        if (message.toLowerCase().includes("already exists")) {
+            return getPrLink(message, `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.`).then(prLink => updatePr(prLink, body));
+        }
+        throw e;
+    });
+}
+function getPrLink(str, errorMessage) {
+    return new Promise((resolve, reject) => {
+        const regex = /(https*:\/\/)?github\.com\/\S+\/\S+\/pull\/\d+/;
+        const urlMatch = str.match(regex);
+        return urlMatch
+            ? resolve(urlMatch[0])
+            : reject(errorMessage ? new Error(errorMessage) : undefined);
+    });
+}
+function updatePr(prLinkOrNumber, body) {
+    return (0, utility_1.execCommand)(`gh pr edit ${prLinkOrNumber} --body ${body}`, `Update pull request '${prLinkOrNumber}' failed.`);
+}
+//# sourceMappingURL=prHelper.js.map
+
+/***/ }),
+
+/***/ 6837:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.standardVersionRelease = exports.runDry = exports.getReleaseCommand = exports.installStandardVersionPackage = void 0;
+const utility_1 = __nccwpck_require__(8499);
+const changelog_1 = __nccwpck_require__(3062);
+function installStandardVersionPackage() {
+    return (0, utility_1.execCommand)("npm install -g standard-version", "Can not install standard version npm package.");
+}
+exports.installStandardVersionPackage = installStandardVersionPackage;
+function getReleaseCommand(skipChangelog, inputVersion) {
+    let releaseCommand = "standard-version";
+    if (inputVersion)
+        releaseCommand += ` --release-as ${inputVersion}`;
+    if (skipChangelog)
+        releaseCommand += " --skip.changelog";
+    return releaseCommand;
+}
+exports.getReleaseCommand = getReleaseCommand;
+function runDry(command) {
+    const dryFlag = " --dry-run";
+    if (!command.toLowerCase().includes(dryFlag))
+        command += dryFlag;
+    return (0, utility_1.execCommand)(command).then(output => output.stdout.trim());
+}
+exports.runDry = runDry;
+function standardVersionRelease(generateChangelogOption, changelog_file, inputVersion, changelogHeaderRegex) {
+    return (0, changelog_1.isNeedGenerateChangelog)(generateChangelogOption, changelog_file, inputVersion, changelogHeaderRegex)
+        .then(needCreateChangelog => getReleaseCommand(!needCreateChangelog, inputVersion))
+        .then(releaseCommand => (0, utility_1.execCommand)(releaseCommand));
+}
+exports.standardVersionRelease = standardVersionRelease;
+//# sourceMappingURL=standard-version.js.map
+
+/***/ }),
+
+/***/ 8499:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getBooleanInputOrDefault = exports.getInputOrDefault = exports.createReleaseFile = exports.readFile = exports.execCommand = exports.execBashCommand = void 0;
+const exec = __importStar(__nccwpck_require__(1514));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const git_1 = __nccwpck_require__(7052);
+const core = __importStar(__nccwpck_require__(2186));
+function execBashCommand(command, errorMessage, args, options) {
+    command = command.replace(/"/g, "'");
+    return execCommand(`/bin/bash -c "${command}"`, errorMessage, args, options);
+}
+exports.execBashCommand = execBashCommand;
+function execCommand(command, errorMessage, args, options) {
+    return exec.getExecOutput(command, args, options).catch(error => {
+        const title = errorMessage || `Execute '${command}' failed.`;
+        const message = error instanceof Error ? error.message : error.toString();
+        throw new Error(`${title}\n${message}`);
+    });
+}
+exports.execCommand = execCommand;
+function readFile(fileName) {
+    return new Promise((resolve, reject) => {
+        if (!fs_1.default.existsSync(fileName)) {
+            return reject(new Error(`Can not find '${fileName}'.`));
+        }
+        resolve(fs_1.default.readFileSync(fileName, "utf8").trim());
+    });
+}
+exports.readFile = readFile;
+function createReleaseFile(releaseDir, releaseFilename) {
+    if (!releaseFilename.endsWith(".zip"))
+        releaseFilename += ".zip";
+    return (0, git_1.getGitRootDir)().then(rootDir => {
+        const outputPath = path_1.default.join(rootDir, releaseFilename);
+        return execBashCommand(`(cd ${releaseDir}; zip -r ${outputPath} .)`, `Can not create release file from '${releaseDir}' to '${outputPath}'.`).then(() => releaseFilename);
+    });
+}
+exports.createReleaseFile = createReleaseFile;
+function getInputOrDefault(name, default_value = undefined, trimWhitespace = true, required = false) {
+    const input = core.getInput(name, {
+        trimWhitespace,
+        required,
+    });
+    if (!input || input === "")
+        return default_value;
+    return input;
+}
+exports.getInputOrDefault = getInputOrDefault;
+function getBooleanInputOrDefault(name, defaultValue = undefined, required = false) {
+    var _a;
+    const input = (_a = getInputOrDefault(name, undefined, true, required)) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+    if (!input)
+        return defaultValue;
+    if (input === "true")
+        return true;
+    if (input === "false")
+        return false;
+    throw new TypeError(`The value of '${name}' is not valid. It must be either true or false but got '${input}'.`);
+}
+exports.getBooleanInputOrDefault = getBooleanInputOrDefault;
+//# sourceMappingURL=utility.js.map
+
+/***/ }),
+
+/***/ 8882:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.detectNewVersion = exports.compareVersions = exports.readVersionFromNpm = exports.versionMustValid = exports.SEMANTIC_VERSION_REGEX = void 0;
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const utility_1 = __nccwpck_require__(8499);
+const standard_version_1 = __nccwpck_require__(6837);
+exports.SEMANTIC_VERSION_REGEX = /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+function versionMustValid(inputVersion, currentVersion, ignoreSameVersionError = false, ignoreLessVersionError = false, versionRegex) {
+    return new Promise((resolve, reject) => {
+        const pattern = versionRegex
+            ? new RegExp(versionRegex)
+            : exports.SEMANTIC_VERSION_REGEX;
+        if (!pattern.test(inputVersion)) {
+            return reject(new Error(`The version format '${inputVersion}' is not valid. If you want, you can change 'version-regex'.`));
+        }
+        if (!ignoreSameVersionError &&
+            inputVersion.toLowerCase() === currentVersion.toLowerCase()) {
+            return reject(new Error(`The input version '${inputVersion}' is same to the current version. If you want, you can set 'ignore-same-version-error' to ignore this error."`));
+        }
+        if (!ignoreLessVersionError &&
+            compareVersions(inputVersion, currentVersion) < 0) {
+            return reject(new Error(`The input version '${inputVersion}' is less than the current version '${currentVersion}'.  If you want, you can set 'ignore-less-version-error' to ignore this error.`));
+        }
+        return resolve();
+    });
+}
+exports.versionMustValid = versionMustValid;
+function readVersionFromNpm(package_path) {
+    return new Promise((resolve, reject) => {
+        if (!fs_1.default.existsSync(package_path)) {
+            return reject(new Error(`Can not find package.json in '${package_path}'.`));
+        }
+        if (!package_path.includes("/"))
+            package_path = `./${package_path}`;
+        return (0, utility_1.execCommand)(`node -p -e "require('${package_path}').version"`, `Read version from '${package_path}' failed.`).then(version => resolve(version.stdout.trim()));
+    });
+}
+exports.readVersionFromNpm = readVersionFromNpm;
+/**
+ * Compare two semantic version numbers and return a number indicating their order.
+ *
+ * @param {string} version1 - The first version number to compare.
+ * @param {string} version2 - The second version number to compare.
+ *
+ * @returns {number} Returns -1 if version1 is less than version2, 0 if they are equal, or 1 if version1 is greater than version2.
+ */
+function compareVersions(version1, version2) {
+    const v1 = version1.split(".");
+    const v2 = version2.split(".");
+    for (let i = 0; i < v1.length || i < v2.length; i++) {
+        const num1 = parseInt(v1[i], 10) || 0;
+        const num2 = parseInt(v2[i], 10) || 0;
+        if (num1 > num2) {
+            return 1;
+        }
+        else if (num1 < num2) {
+            return -1;
+        }
+    }
+    return 0;
+}
+exports.compareVersions = compareVersions;
+function detectNewVersion(inputVersion) {
+    if (inputVersion)
+        return Promise.resolve(inputVersion);
+    const releaseCommand = (0, standard_version_1.getReleaseCommand)(true, inputVersion);
+    return (0, standard_version_1.runDry)(releaseCommand).then(parseNewVersionFromText);
+}
+exports.detectNewVersion = detectNewVersion;
+function parseNewVersionFromText(text) {
+    const regex = /v(\d+\.\d+\.\d+)/;
+    const match = text.match(regex);
+    if (match)
+        return match[1];
+    throw new Error(`Can not detect new version from ${text}`);
+}
+//# sourceMappingURL=version.js.map
+
+/***/ }),
+
+/***/ 6180:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.validateInputs = exports.getInputsOrDefaults = void 0;
+const utility_1 = __nccwpck_require__(8499);
+const version_1 = __nccwpck_require__(8882);
+const git_1 = __nccwpck_require__(7052);
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+function getInputsOrDefaults(defaultInputs) {
+    return new Promise(resolve => resolve({
+        inputVersion: (0, utility_1.getInputOrDefault)("version", defaultInputs.inputVersion),
+        versionRegex: getRegexOrDefault("version-regex", defaultInputs.versionRegex),
+        ignoreLessVersionError: (0, utility_1.getBooleanInputOrDefault)("ignore-same-version-error", defaultInputs.ignoreLessVersionError),
+        ignoreSameVersionError: (0, utility_1.getBooleanInputOrDefault)("ignore-less-version-error", defaultInputs.ignoreSameVersionError),
+        generateChangelog: getGenerateChangelog(defaultInputs.generateChangelog),
+        isTestMode: (0, utility_1.getBooleanInputOrDefault)("is-test-mode", defaultInputs.isTestMode),
+        gitEmail: (0, utility_1.getInputOrDefault)("git-email", defaultInputs.gitEmail),
+        gitUsername: (0, utility_1.getInputOrDefault)("git-user-name", defaultInputs.gitUsername),
+        skipReleaseFile: (0, utility_1.getBooleanInputOrDefault)("skip-release-file", defaultInputs.skipReleaseFile),
+        releaseDirectory: (0, utility_1.getInputOrDefault)("release-directory", defaultInputs.releaseDirectory),
+        releaseFileName: (0, utility_1.getInputOrDefault)("release-file-name", defaultInputs.releaseFileName),
+        createPrForBranchName: (0, utility_1.getInputOrDefault)("create-pr-for-branch", defaultInputs.createPrForBranchName),
+        changelogHeaderRegex: getRegexOrDefault("changelog-header-regex", defaultInputs.changelogHeaderRegex),
+    }));
+}
+exports.getInputsOrDefaults = getInputsOrDefaults;
+function getGenerateChangelog(default_value) {
+    var _a, _b;
+    const generateChangelog = (_b = (_a = (0, utility_1.getInputOrDefault)("generate-changelog", undefined)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== null && _b !== void 0 ? _b : default_value;
+    switch (generateChangelog) {
+        case "auto":
+        case "always":
+        case "never":
+            return generateChangelog;
+        default:
+            throw new Error(`The input generate-changelog '${generateChangelog}' is not valid. Supported values are auto, enable, disable`);
+    }
+}
+function getRegexOrDefault(name, default_regex = undefined) {
+    const versionRegexStr = (0, utility_1.getInputOrDefault)(name, undefined);
+    if (versionRegexStr)
+        return new RegExp(versionRegexStr);
+    return default_regex ? new RegExp(default_regex) : undefined;
+}
+function validateInputs(inputs, currentVersion) {
+    return new Promise((resolve, reject) => {
+        if (!inputs.inputVersion)
+            return resolve();
+        return (0, version_1.versionMustValid)(inputs.inputVersion, currentVersion, inputs.ignoreSameVersionError, inputs.ignoreLessVersionError)
+            .then(resolve)
+            .catch(reject);
+    })
+        .then(() => {
+        if (!fs_1.default.existsSync(inputs.releaseDirectory)) {
+            return Promise.reject(new Error(`The directory '${inputs.releaseDirectory}' does not exists.`));
+        }
+        return Promise.resolve();
+    })
+        .then(() => {
+        if (!inputs.createPrForBranchName)
+            return Promise.resolve();
+        return (0, git_1.ensureBranchNameIsValid)(inputs.createPrForBranchName);
+    });
+}
+exports.validateInputs = validateInputs;
 //# sourceMappingURL=inputs.js.map
 
 /***/ }),
@@ -43,7 +546,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const run_1 = __importDefault(__nccwpck_require__(7884));
-(0, run_1.default)();
+const configs_1 = __nccwpck_require__(7905);
+(0, run_1.default)(configs_1.DEFAULT_INPUTS, "package.json", "CHANGELOG.md");
 //# sourceMappingURL=main.js.map
 
 /***/ }),
@@ -80,101 +584,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setOutputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 function setOutputs(data) {
-    core.setOutput("version", data.version);
-    core.setOutput("pull-request-url", data.pullRequestUrl);
-    core.setOutput("releaseFileName", data.releaseFileName);
+    for (let key of Object.keys(data))
+        core.setOutput(key, data[key]);
 }
 exports.setOutputs = setOutputs;
 //# sourceMappingURL=outputs.js.map
-
-/***/ }),
-
-/***/ 601:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createPullRequest = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const utility_1 = __nccwpck_require__(2857);
-function createPullRequest(createPrForBranchName) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return (0, utility_1.getCurrentBranchName)()
-            .then(currentBranchName => createOrUpdatePr(createPrForBranchName, currentBranchName))
-            .then(output => {
-            const link = getPrLink(output.stdout);
-            if (!link)
-                throw new Error(`Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`);
-            return link;
-        });
-    });
-}
-exports.createPullRequest = createPullRequest;
-function createOrUpdatePr(createPrForBranchName, currentBranchName) {
-    return (0, utility_1.execCommand)(`gh pr create -B ${createPrForBranchName} -H ${currentBranchName} --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body-file CHANGELOG.md`, `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`).catch(e => tryFindActivePr(createPrForBranchName, currentBranchName).then(prNumber => {
-        if (!prNumber) {
-            throw new Error(`Can not create pull request and can not find any active PR to update.\n${e.toString()}`);
-        }
-        core.info("Can not create pull request because it is exist. Try update it.");
-        return updatePr(prNumber);
-    }));
-}
-function getPrLink(str) {
-    const regex = /(https*:\/\/)?github\.com\/\S+\/\S+\/pull\/\d+/;
-    const urlMatch = str.match(regex);
-    return urlMatch ? urlMatch[0] : null;
-}
-function updatePr(prNumber) {
-    return (0, utility_1.execCommand)(`gh pr edit ${prNumber} --body-file CHANGELOG.md`, `Update pull request with '${prNumber}' failed.`);
-}
-function tryFindActivePr(targetBranchName, currentBranchName) {
-    return (0, utility_1.execCommand)(`gh pr list -B ${targetBranchName} -H ${currentBranchName} --state open --json number`, `Trying to find active PR for ${targetBranchName} from ${currentBranchName} failed.`)
-        .then(result => JSON.parse(result.stdout))
-        .then((json) => {
-        switch (json.length) {
-            case 0:
-                return null;
-            case 1:
-                return json[0].number.toString();
-            default:
-                throw new Error("More than one pull requests found.");
-        }
-    });
-}
-//# sourceMappingURL=prHelper.js.map
 
 /***/ }),
 
@@ -209,29 +623,42 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const inputs_1 = __nccwpck_require__(6180);
-const utility_1 = __nccwpck_require__(2857);
-const prHelper_1 = __nccwpck_require__(601);
+const utility_1 = __nccwpck_require__(8499);
+const prHelper_1 = __nccwpck_require__(2061);
 const outputs_1 = __nccwpck_require__(5314);
-const run = () => mainProcess()
+const version_1 = __nccwpck_require__(8882);
+const standard_version_1 = __nccwpck_require__(6837);
+const git_1 = __nccwpck_require__(7052);
+const changelog_1 = __nccwpck_require__(3062);
+const run = (default_inputs, package_json_path, changelog_file) => mainProcess(default_inputs, package_json_path, changelog_file)
     .then(() => core.info("Operation completed successfully."))
     .catch(error => {
     core.error("Operation failed.");
     core.setFailed(error instanceof Error ? error.message : error.toString());
 });
 exports["default"] = run;
-function mainProcess() {
-    return (0, inputs_1.getInputs)().then(inputs => {
-        const outputs = {};
-        return (0, utility_1.installStandardVersionPackage)()
-            .then(() => (0, utility_1.setGitConfigs)(inputs.gitEmail, inputs.gitUsername))
-            .then(() => (0, utility_1.svRelease)(inputs.version, inputs.skipChangelog))
-            .then(() => releaseFiles(inputs.skipReleaseFile, inputs.releaseDirectory, inputs.releaseFileName).then(releaseFileName => (outputs.releaseFileName = releaseFileName !== null && releaseFileName !== void 0 ? releaseFileName : "")))
-            .then(() => (0, utility_1.operateWhen)(!inputs.isTestMode, utility_1.push, "The test mode is enabled so skipping push."))
-            .then(() => createPr(inputs.createPrForBranchName, inputs.isTestMode).then(prLink => (outputs.pullRequestUrl = prLink !== null && prLink !== void 0 ? prLink : "")))
+function mainProcess(default_inputs, package_json_file, changelog_file) {
+    return (0, inputs_1.getInputsOrDefaults)(default_inputs).then(inputs => _validateInputs(inputs, package_json_file).then(() => {
+        const outputs = {
+            version: "",
+            changelog: "",
+            "release-filename": "",
+            "pull-request-url": "",
+        };
+        return (0, standard_version_1.installStandardVersionPackage)()
+            .then(() => (0, git_1.setGitConfigs)(inputs.gitEmail, inputs.gitUsername))
+            .then(() => (0, standard_version_1.standardVersionRelease)(inputs.generateChangelog, changelog_file, inputs.inputVersion, inputs.changelogHeaderRegex))
+            .then(() => _releaseFiles(inputs.skipReleaseFile, inputs.releaseDirectory, inputs.releaseFileName, outputs))
+            .then(() => _push(inputs.isTestMode))
+            .then(() => _setVersionToOutput(package_json_file, outputs))
+            .then(newVersion => _changelog(changelog_file, newVersion, outputs, inputs.changelogHeaderRegex).then(changelog => _createPr(outputs, changelog, inputs.createPrForBranchName, inputs.isTestMode)))
             .then(() => (0, outputs_1.setOutputs)(outputs));
-    });
+    }));
 }
-function createPr(createPrForBranchName, isTestMode = false) {
+function _validateInputs(inputs, package_json_file) {
+    return (0, version_1.readVersionFromNpm)(package_json_file).then(currentVersion => (0, inputs_1.validateInputs)(inputs, currentVersion));
+}
+function _createPr(outputs, body, createPrForBranchName, isTestMode = false) {
     if (isTestMode) {
         core.info("The test mode is enabled so skipping pull request creation.");
         return Promise.resolve(null);
@@ -240,189 +667,33 @@ function createPr(createPrForBranchName, isTestMode = false) {
         core.info("No branch name provided so skipping pull request creation.");
         return Promise.resolve(null);
     }
-    return (0, prHelper_1.createPullRequest)(createPrForBranchName);
+    return (0, prHelper_1.createPullRequest)(createPrForBranchName, body).then(prLink => (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : ""));
 }
-function releaseFiles(skipReleaseFile, releaseDirectory, releaseFileName) {
+function _releaseFiles(skipReleaseFile, releaseDirectory, releaseFileName, outputs) {
     if (skipReleaseFile) {
         core.info("Skip release file is requested so skip create release file.");
         return Promise.resolve(null);
     }
-    return (0, utility_1.createReleaseFile)(releaseDirectory, releaseFileName);
+    return (0, utility_1.createReleaseFile)(releaseDirectory, releaseFileName).then(releaseFileName => (outputs["release-filename"] = releaseFileName !== null && releaseFileName !== void 0 ? releaseFileName : ""));
+}
+function _push(isTestMode) {
+    if (isTestMode)
+        return Promise.resolve(null);
+    return (0, git_1.push)();
+}
+function _setVersionToOutput(package_json_file, outputs) {
+    return (0, version_1.readVersionFromNpm)(package_json_file).then(version => {
+        outputs.version = version;
+        return version;
+    });
+}
+function _changelog(changelog_file, newVersion, outputs, changelogHeaderRegex) {
+    return (0, changelog_1.readChangelogSection)(changelog_file, newVersion, changelogHeaderRegex).then(changelog => {
+        outputs.changelog = changelog;
+        return changelog;
+    });
 }
 //# sourceMappingURL=run.js.map
-
-/***/ }),
-
-/***/ 2857:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.svRelease = exports.installStandardVersionPackage = exports.setGitConfigs = exports.operateWhen = exports.createReleaseFile = exports.push = exports.execCommand = exports.execBashCommand = exports.getBooleanInputOrDefault = exports.getInputOrDefault = exports.getCurrentBranchName = void 0;
-const exec = __importStar(__nccwpck_require__(1514));
-const core = __importStar(__nccwpck_require__(2186));
-const path_1 = __importDefault(__nccwpck_require__(1017));
-function getCurrentBranchName() {
-    return execCommand("git rev-parse --abbrev-ref HEAD", "Detect current branch name failed.").then(result => result.stdout.trim());
-}
-exports.getCurrentBranchName = getCurrentBranchName;
-function getInputOrDefault(name, default_value = "", trimWhitespace = true, required = false) {
-    const input = core.getInput(name, {
-        trimWhitespace,
-        required,
-    });
-    if (!input || input === "")
-        return default_value;
-    return input;
-}
-exports.getInputOrDefault = getInputOrDefault;
-function getBooleanInputOrDefault(name, defaultValue, required = false) {
-    const input = getInputOrDefault(name, "", true, required).toLowerCase();
-    if (input === "")
-        return defaultValue;
-    if (input === "true")
-        return true;
-    if (input === "false")
-        return false;
-    throw new TypeError(`The value of ${name} is not valid. It must be either true or false but got ${input}`);
-}
-exports.getBooleanInputOrDefault = getBooleanInputOrDefault;
-function execBashCommand(command, errorMessage = null) {
-    command = command.replace(/"/g, "'");
-    return execCommand(`/bin/bash -c "${command}"`, errorMessage);
-}
-exports.execBashCommand = execBashCommand;
-function execCommand(command, errorMessage = null) {
-    return exec.getExecOutput(command).catch(error => {
-        const title = errorMessage || `Execute '${command}' failed.`;
-        const message = error instanceof Error ? error.message : error.toString();
-        throw new Error(`${title}\n${message}`);
-    });
-}
-exports.execCommand = execCommand;
-function push() {
-    return getCurrentBranchName().then(currentBranchName => execCommand(`git push --follow-tags origin ${currentBranchName}`));
-}
-exports.push = push;
-function createReleaseFile(releaseDir, releaseFilename) {
-    if (!releaseFilename.endsWith(".zip"))
-        releaseFilename += ".zip";
-    return getGitRootDir().then(rootDir => {
-        const outputPath = path_1.default.join(rootDir, releaseFilename);
-        return execBashCommand(`(cd ${releaseDir}; zip -r ${outputPath} .)`, `Can not create release file from ${releaseDir} to ${outputPath}'.`).then(() => releaseFilename);
-    });
-}
-exports.createReleaseFile = createReleaseFile;
-function getGitRootDir() {
-    return execCommand("git rev-parse --show-toplevel", "find git root directory failed.").then(output => output.stdout.trim());
-}
-function operateWhen(condition, func, elseMessage = null) {
-    if (condition)
-        return func();
-    else if (elseMessage)
-        core.info(elseMessage);
-}
-exports.operateWhen = operateWhen;
-function setGitConfigs(email, username) {
-    return execCommand(`git config --global user.email "${email}"`).then(() => execCommand(`git config --global user.name "${username}"`));
-}
-exports.setGitConfigs = setGitConfigs;
-function installStandardVersionPackage() {
-    return execCommand("npm install -g standard-version", "Can not install standard version npm package.");
-}
-exports.installStandardVersionPackage = installStandardVersionPackage;
-function svRelease(version, skipChangelog) {
-    let releaseCommand = "standard-version";
-    if (version)
-        releaseCommand += ` --release-as ${version}`;
-    if (skipChangelog)
-        releaseCommand += " --skip.changelog";
-    return execCommand(releaseCommand);
-}
-exports.svRelease = svRelease;
-//# sourceMappingURL=utility.js.map
-
-/***/ }),
-
-/***/ 8217:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-// https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.compareVersions = exports.readVersion = exports.isVersionValid = void 0;
-const fs_1 = __importDefault(__nccwpck_require__(7147));
-const utility_1 = __nccwpck_require__(2857);
-const SEMANTIC_VERSION_REGEX = /^(0|[1-9]\d*)(\.\d+){0,2}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
-function isVersionValid(version) {
-    return SEMANTIC_VERSION_REGEX.test(version);
-}
-exports.isVersionValid = isVersionValid;
-function readVersion(package_path) {
-    return new Promise((resolve, reject) => {
-        if (!fs_1.default.existsSync(package_path)) {
-            return reject(new Error(`Can not find package.json in '${package_path}'.`));
-        }
-        return (0, utility_1.execCommand)(`node -p -e "require('${package_path}').version"`, `Read version from '${package_path}' failed.`).then(version => resolve(version.stdout.trim()));
-    });
-}
-exports.readVersion = readVersion;
-/**
- * Compare two semantic version numbers and return a number indicating their order.
- *
- * @param {string} version1 - The first version number to compare.
- * @param {string} version2 - The second version number to compare.
- *
- * @returns {number} Returns -1 if version1 is less than version2, 0 if they are equal, or 1 if version1 is greater than version2.
- */
-function compareVersions(version1, version2) {
-    const v1 = version1.split(".");
-    const v2 = version2.split(".");
-    for (let i = 0; i < v1.length || i < v2.length; i++) {
-        const num1 = parseInt(v1[i], 10) || 0;
-        const num2 = parseInt(v2[i], 10) || 0;
-        if (num1 > num2) {
-            return 1;
-        }
-        else if (num1 < num2) {
-            return -1;
-        }
-    }
-    return 0;
-}
-exports.compareVersions = compareVersions;
-//# sourceMappingURL=version.js.map
 
 /***/ }),
 

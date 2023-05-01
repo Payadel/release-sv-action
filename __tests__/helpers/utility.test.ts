@@ -9,7 +9,7 @@ import {
     getInputOrDefault,
     readFile,
 } from "../../src/helpers/utility";
-import { mockGetExecOutput, mockGetInput } from "../mocks";
+import { mockGetExecOutput, mockGetInput } from "../mocks.utility";
 import * as core from "@actions/core";
 
 jest.mock("@actions/core");

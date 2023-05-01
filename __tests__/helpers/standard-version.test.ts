@@ -1,5 +1,5 @@
 import * as exec from "@actions/exec";
-import { mockGetExecOutput } from "../mocks";
+import { mockGetExecOutput } from "../mocks.utility";
 import {
     getReleaseCommand,
     runDry,

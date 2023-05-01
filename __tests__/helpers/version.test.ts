@@ -8,7 +8,7 @@ import fs, { mkdtempSync, writeFileSync } from "fs";
 import { join } from "path";
 import { DEFAULT_INPUTS } from "../../src/configs";
 import * as exec from "@actions/exec";
-import { mockGetExecOutput } from "../mocks";
+import { mockGetExecOutput } from "../mocks.utility";
 
 describe("readVersionFromNpm", () => {
     let tempDir: string;

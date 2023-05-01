@@ -5,7 +5,7 @@ import {
     readChangelogSection,
 } from "../../src/helpers/changelog";
 import * as exec from "@actions/exec";
-import { mockGetExecOutput } from "../mocks";
+import { mockGetExecOutput } from "../mocks.utility";
 
 jest.mock("@actions/exec");
 
