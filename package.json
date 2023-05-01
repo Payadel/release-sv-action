@@ -5,11 +5,11 @@
   "main": "lib/main.js",
   "scripts": {
     "ins": "npm install",
-    "build": "tsc",
+    "build": "rm -r lib; tsc",
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
+    "package": "rm -r dist; ncc build --source-map --license licenses.txt",
     "test": "jest --passWithNoTests",
     "coverage": "jest --coverage",
     "all": "npm run ins && npm run build && npm run format && npm run lint && npm run package && npm test",
@@ -35,8 +35,7 @@
   "homepage": "https://github.com/Payadel/release-sv-action#readme",
   "dependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/exec": "^1.1.1",
-    "validatorjs": "^3.22.1"
+    "@actions/exec": "^1.1.1"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
