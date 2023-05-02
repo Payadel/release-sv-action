@@ -23,10 +23,8 @@ export function readChangelogSection(
     changelogHeaderRegex?: RegExp
 ): Promise<string> {
     return readFile(changelog_file).then(content => {
-        core.debug(`Read ${changelog_file}.`);
-
         const lines = content.split("\n");
-        core.debug(`It has ${lines.length} lines.`);
+        core.debug(`The ${changelog_file} has ${lines.length} lines.`);
 
         changelogHeaderRegex =
             changelogHeaderRegex || DEFAULT_CHANGELOG_HEADER_REGEX;
@@ -117,8 +115,14 @@ export function isNeedGenerateChangelog(
     return new Promise<boolean>((resolve, reject) => {
         switch (generateChangelogOption) {
             case "never":
+                core.info(
+                    "generate-changelog is set to 'never' so skipping generate changelog."
+                );
                 return resolve(false);
             case "always":
+                core.info(
+                    "generate-changelog is set to 'always' so trying to generate changelog."
+                );
                 return resolve(true);
             case "auto":
                 changelogHeaderRegex =
@@ -132,7 +136,16 @@ export function isNeedGenerateChangelog(
                     changelogVersionRegex,
                     inputVersion
                 )
-                    .then(resolve)
+                    .then(needGenerateChangelog => {
+                        core.info(
+                            `generate-changelog is set to 'auto' ${
+                                needGenerateChangelog
+                                    ? "the changelog should be created."
+                                    : "No need to generate changelog."
+                            }`
+                        );
+                        return resolve(needGenerateChangelog);
+                    })
                     .catch(reject);
             default:
                 return new reject(

@@ -29,7 +29,11 @@ function createOrUpdatePr(
 
     return execCommand(
         `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-        `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`
+        `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`,
+        [],
+        {
+            silent: true,
+        }
     ).catch(e => {
         const message = e instanceof Error ? e.message : e.toString();
         if (message.toLowerCase().includes("already exists")) {
@@ -60,7 +64,9 @@ function updatePr(
     body = encodeDoubleQuotation(body);
     return execCommand(
         `gh pr edit "${prLinkOrNumber}" --body "${body}"`,
-        `Update pull request '${prLinkOrNumber}' failed.`
+        `Update pull request '${prLinkOrNumber}' failed.`,
+        [],
+        { silent: true }
     );
 }
 

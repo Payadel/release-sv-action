@@ -115,9 +115,14 @@ function _standardVersionRelease(
     );
 }
 
-function _validateInputs(inputs: IInputs, package_json_file: string) {
+function _validateInputs(
+    inputs: IInputs,
+    package_json_file: string
+): Promise<void> {
     return readVersionFromNpm(package_json_file).then(currentVersion =>
-        validateInputs(inputs, currentVersion)
+        validateInputs(inputs, currentVersion).then(() =>
+            core.info("Inputs validated successfully.")
+        )
     );
 }
 
