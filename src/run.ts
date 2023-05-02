@@ -15,7 +15,6 @@ import {
 } from "./helpers/standard-version";
 import { push, setGitConfigs } from "./helpers/git";
 import { readChangelogSection } from "./helpers/changelog";
-import { ExecOutput } from "@actions/exec";
 
 const run = (
     default_inputs: IInputs,
@@ -40,6 +39,8 @@ function mainProcess(
 ): Promise<void> {
     return _getValidatedInputs(default_inputs, package_json_file).then(
         inputs => {
+            if (inputs.isTestMode) core.warning("The test mode is enabled.");
+
             const outputs: IActionOutputs = {
                 version: "",
                 changelog: "",
@@ -64,7 +65,7 @@ function mainProcess(
                         inputs.releaseFileName,
                         outputs
                     )
-                        .then(() => _push(inputs.isTestMode))
+                        .then(() => push(inputs.isTestMode))
                         .then(() =>
                             _changelog(
                                 changelog_file,
@@ -132,12 +133,6 @@ function _createPr(
     createPrForBranchName?: string,
     isTestMode: boolean = false
 ): Promise<string | null> {
-    if (isTestMode) {
-        core.info(
-            "The test mode is enabled so skipping pull request creation."
-        );
-        return Promise.resolve(null);
-    }
     if (!createPrForBranchName) {
         core.info("No branch name provided so skipping pull request creation.");
         return Promise.resolve(null);
@@ -163,11 +158,6 @@ function _releaseFiles(
     return createReleaseFile(releaseDirectory, releaseFileName).then(
         releaseFileName => (outputs["release-filename"] = releaseFileName ?? "")
     );
-}
-
-function _push(isTestMode: boolean): Promise<ExecOutput | null> {
-    if (isTestMode) return Promise.resolve(null);
-    return push();
 }
 
 function _changelog(

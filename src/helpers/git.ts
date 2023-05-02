@@ -1,5 +1,6 @@
 import { execCommand } from "./utility";
 import * as exec from "@actions/exec";
+import * as core from "@actions/core";
 
 export function getCurrentBranchName(): Promise<string> {
     return execCommand(
@@ -24,10 +25,23 @@ export function setGitConfigs(
     );
 }
 
-export function push(): Promise<exec.ExecOutput> {
-    return getCurrentBranchName().then(currentBranchName =>
-        execCommand(`git push --follow-tags origin ${currentBranchName}`)
-    );
+export function push(testMode = false): Promise<exec.ExecOutput> {
+    return getCurrentBranchName().then(currentBranchName => {
+        const command = `git push --follow-tags origin ${currentBranchName}`;
+
+        if (testMode) {
+            core.info(
+                `Test mode is enabled so skipping push command and return fake output. Command: ${command}`
+            );
+            return Promise.resolve<exec.ExecOutput>({
+                stdout: "OK!",
+                stderr: "",
+                exitCode: 0,
+            });
+        }
+
+        return execCommand(command);
+    });
 }
 
 export function ensureBranchNameIsValid(branchName: string): Promise<void> {

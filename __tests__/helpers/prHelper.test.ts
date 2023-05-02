@@ -34,7 +34,6 @@ describe("createPullRequest", () => {
                             "Warning: 7 uncommitted changes\n" +
                             "\n" +
                             `Creating pull request for ${currentBranchName} into ${createPrForBranchName} in user/repo\n` +
-                            "\n" +
                             prLink,
                         exitCode: 0,
                         stderr: "",

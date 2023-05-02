@@ -1,14 +1,21 @@
 import * as exec from "@actions/exec";
+import * as core from "@actions/core";
 import { execCommand } from "./utility";
 import { getCurrentBranchName } from "./git";
 
 export function createPullRequest(
     createPrForBranchName: string,
-    body: string
+    body: string,
+    testMode = false
 ): Promise<string> {
     return getCurrentBranchName()
         .then(currentBranchName =>
-            createOrUpdatePr(createPrForBranchName, currentBranchName, body)
+            createOrUpdatePr(
+                createPrForBranchName,
+                currentBranchName,
+                body,
+                testMode
+            )
         )
         .then(output =>
             getPrLink(
@@ -21,14 +28,27 @@ export function createPullRequest(
 function createOrUpdatePr(
     createPrForBranchName: string,
     currentBranchName: string,
-    body: string
+    body: string,
+    testMode = false
 ): Promise<exec.ExecOutput> {
     createPrForBranchName = encodeDoubleQuotation(createPrForBranchName);
     currentBranchName = encodeDoubleQuotation(currentBranchName);
     body = encodeDoubleQuotation(body);
+    const command = `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`;
+
+    if (testMode) {
+        core.info(
+            `The test mode is enabled so skipping create pull request and return fake output. Command: ${command}`
+        );
+        return Promise.resolve<exec.ExecOutput>({
+            stdout: `Creating pull request for ${currentBranchName} into ${createPrForBranchName} in user/repo\nhttps://github.com/user/repo/pull/1000`,
+            exitCode: 0,
+            stderr: "",
+        });
+    }
 
     return execCommand(
-        `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
+        command,
         `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`,
         [],
         {
