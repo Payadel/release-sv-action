@@ -1,5 +1,10 @@
 import * as core from "@actions/core";
-import { getInputsOrDefaults, IInputs, validateInputs } from "./inputs";
+import {
+    GenerateChangelogOptions,
+    getInputsOrDefaults,
+    IInputs,
+    validateInputs,
+} from "./inputs";
 import { createReleaseFile } from "./helpers/utility";
 import { createPullRequest } from "./helpers/prHelper";
 import { IActionOutputs, setOutputs } from "./outputs";
@@ -33,8 +38,8 @@ function mainProcess(
     package_json_file: string,
     changelog_file: string
 ): Promise<void> {
-    return getInputsOrDefaults(default_inputs).then(inputs =>
-        _validateInputs(inputs, package_json_file).then(() => {
+    return _getValidatedInputs(default_inputs, package_json_file).then(
+        inputs => {
             const outputs: IActionOutputs = {
                 version: "",
                 changelog: "",
@@ -42,9 +47,10 @@ function mainProcess(
                 "pull-request-url": "",
             };
             return installStandardVersionPackage()
-                .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
                 .then(() =>
-                    standardVersionRelease(
+                    _standardVersionRelease(
+                        inputs.gitEmail,
+                        inputs.gitUsername,
                         inputs.generateChangelog,
                         changelog_file,
                         inputs.inputVersion,
@@ -78,7 +84,34 @@ function mainProcess(
                         .then(() => (outputs.version = newVersion))
                         .then(() => setOutputs(outputs))
                 );
-        })
+        }
+    );
+}
+
+function _getValidatedInputs(
+    default_inputs: IInputs,
+    package_json_file: string
+): Promise<IInputs> {
+    return getInputsOrDefaults(default_inputs).then(inputs =>
+        _validateInputs(inputs, package_json_file).then(() => inputs)
+    );
+}
+
+function _standardVersionRelease(
+    gitEmail: string,
+    gitUsername: string,
+    generateChangelog: GenerateChangelogOptions,
+    changelog_file: string,
+    inputVersion?: string,
+    changelogHeaderRegex?: RegExp
+): Promise<string> {
+    return setGitConfigs(gitEmail, gitUsername).then(() =>
+        standardVersionRelease(
+            generateChangelog,
+            changelog_file,
+            inputVersion,
+            changelogHeaderRegex
+        )
     );
 }
 
