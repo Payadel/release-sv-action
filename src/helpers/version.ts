@@ -103,7 +103,7 @@ export function detectNewVersion(inputVersion?: string): Promise<string> {
     return runDry(releaseCommand).then(parseNewVersionFromText);
 }
 
-function parseNewVersionFromText(text: string): string {
+export function parseNewVersionFromText(text: string): string {
     const regex = /✔ tagging release +v(\S+)/;
     const match = text.match(regex);
     if (match) return match[1];

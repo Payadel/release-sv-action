@@ -2,6 +2,7 @@ import { execCommand } from "./utility";
 import * as exec from "@actions/exec";
 import { GenerateChangelogOptions } from "../inputs";
 import { isNeedGenerateChangelog } from "./changelog";
+import { parseNewVersionFromText } from "./version";
 
 export function installStandardVersionPackage(): Promise<exec.ExecOutput> {
     return execCommand(
@@ -31,7 +32,7 @@ export function standardVersionRelease(
     changelog_file: string,
     inputVersion?: string,
     changelogHeaderRegex?: RegExp
-): Promise<exec.ExecOutput> {
+): Promise<string> {
     return isNeedGenerateChangelog(
         generateChangelogOption,
         changelog_file,
@@ -41,5 +42,6 @@ export function standardVersionRelease(
         .then(needCreateChangelog =>
             getReleaseCommand(!needCreateChangelog, inputVersion)
         )
-        .then(releaseCommand => execCommand(releaseCommand));
+        .then(releaseCommand => execCommand(releaseCommand))
+        .then(output => parseNewVersionFromText(output.stdout));
 }

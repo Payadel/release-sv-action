@@ -51,32 +51,33 @@ function mainProcess(
                         inputs.changelogHeaderRegex
                     )
                 )
-                .then(() =>
+                .then(newVersion =>
                     _releaseFiles(
                         inputs.skipReleaseFile,
                         inputs.releaseDirectory,
                         inputs.releaseFileName,
                         outputs
                     )
-                )
-                .then(() => _push(inputs.isTestMode))
-                .then(() => _setVersionToOutput(package_json_file, outputs))
-                .then(newVersion =>
-                    _changelog(
-                        changelog_file,
-                        newVersion,
-                        outputs,
-                        inputs.changelogHeaderRegex
-                    ).then(changelog =>
-                        _createPr(
-                            outputs,
-                            changelog,
-                            inputs.createPrForBranchName,
-                            inputs.isTestMode
+                        .then(() => _push(inputs.isTestMode))
+                        .then(() =>
+                            _changelog(
+                                changelog_file,
+                                newVersion,
+                                outputs,
+                                inputs.changelogHeaderRegex
+                            )
                         )
-                    )
-                )
-                .then(() => setOutputs(outputs));
+                        .then(changelog =>
+                            _createPr(
+                                outputs,
+                                changelog,
+                                inputs.createPrForBranchName,
+                                inputs.isTestMode
+                            )
+                        )
+                        .then(() => (outputs.version = newVersion))
+                        .then(() => setOutputs(outputs))
+                );
         })
     );
 }
@@ -129,16 +130,6 @@ function _releaseFiles(
 function _push(isTestMode: boolean): Promise<ExecOutput | null> {
     if (isTestMode) return Promise.resolve(null);
     return push();
-}
-
-function _setVersionToOutput(
-    package_json_file: string,
-    outputs: IActionOutputs
-) {
-    return readVersionFromNpm(package_json_file).then(version => {
-        outputs.version = version;
-        return version;
-    });
 }
 
 function _changelog(
