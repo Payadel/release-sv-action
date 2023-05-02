@@ -103,11 +103,15 @@ describe("createPullRequest", () => {
                 },
                 {
                     command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-                    success: false,
-                    rejectMessage:
-                        "Warning: 7 uncommitted changes\n" +
-                        'a pull request for branch "dev" into branch "main" already exists:\n' +
-                        "https://github.com/user/repo/pull/1000\n",
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "Warning: 7 uncommitted changes\n" +
+                            `a pull request for branch ${currentBranchName} into branch ${createPrForBranchName} already exists:\n` +
+                            `${prLink}`,
+                        exitCode: 1,
+                        stderr: "",
+                    },
                 },
                 {
                     command: `gh pr edit "${prLink}" --body "${body}"`,
@@ -144,10 +148,15 @@ describe("createPullRequest", () => {
                 },
                 {
                     command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-                    success: false,
-                    rejectMessage:
-                        "Warning: 7 uncommitted changes\n" +
-                        'a pull request for branch "dev" into branch "main" already exists:\n',
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "Warning: 7 uncommitted changes\n" +
+                            `a pull request for branch ${currentBranchName} into branch ${createPrForBranchName} already exists:\n` +
+                            "NO LINK!",
+                        exitCode: 1,
+                        stderr: "",
+                    },
                 },
             ])
         );
@@ -178,11 +187,15 @@ describe("createPullRequest", () => {
                 },
                 {
                     command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-                    success: false,
-                    rejectMessage:
-                        "Warning: 7 uncommitted changes\n" +
-                        'a pull request for branch "dev" into branch "main" already exists:\n' +
-                        "https://github.com/user/repo/pull/1000\n",
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "Warning: 7 uncommitted changes\n" +
+                            `a pull request for branch ${currentBranchName} into branch ${createPrForBranchName} already exists:\n` +
+                            `${prLink}`,
+                        exitCode: 1,
+                        stderr: "",
+                    },
                 },
                 {
                     command: `gh pr edit "${prLink}" --body "${body}"`,

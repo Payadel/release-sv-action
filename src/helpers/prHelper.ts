@@ -13,7 +13,7 @@ export function createPullRequest(
         .then(output =>
             getPrLink(
                 output.stdout,
-                `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`
+                `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}\n${output.stderr}`
             )
         );
 }
@@ -33,16 +33,19 @@ function createOrUpdatePr(
         [],
         {
             silent: true,
+            ignoreReturnCode: true,
         }
-    ).catch(e => {
-        const message = e instanceof Error ? e.message : e.toString();
+    ).then(output => {
+        if (output.exitCode === 0) return output;
+
+        const message = `${output.stdout}\n${output.stderr}`;
         if (message.toLowerCase().includes("already exists")) {
             return getPrLink(
                 message,
-                `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.`
+                `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.\nMain message: ${message}`
             ).then(prLink => updatePr(prLink, body));
         }
-        throw e;
+        throw new Error(message);
     });
 }
 
