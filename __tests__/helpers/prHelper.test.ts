@@ -121,8 +121,9 @@ describe("createPullRequest", () => {
             ])
         );
 
-        const output = await createPullRequest(createPrForBranchName, body);
-        expect(output).toBe(prLink);
+        await expect(
+            createPullRequest(createPrForBranchName, body)
+        ).resolves.toBe(prLink);
     });
 
     it("create pr fails because it already exists but update operation fails because can not find pr link", async () => {

@@ -2,7 +2,7 @@ import * as exec from "@actions/exec";
 import { execCommand } from "./utility";
 import { getCurrentBranchName } from "./git";
 
-export async function createPullRequest(
+export function createPullRequest(
     createPrForBranchName: string,
     body: string
 ): Promise<string> {

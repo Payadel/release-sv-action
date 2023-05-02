@@ -69,9 +69,7 @@ export function getInputOrDefault(
         required,
     });
     if (!input || input === "") {
-        core.debug(
-            `Try get ${name} but it is not provided so return default value '${default_value}'`
-        );
+        core.debug(`${name}: ${input} (default value)`);
         return default_value;
     }
 
