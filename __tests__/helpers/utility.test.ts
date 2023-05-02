@@ -100,7 +100,7 @@ describe("execCommand", () => {
         const customMessage = "Custom error message";
         await expect(
             execCommand("invalid-command", customMessage)
-        ).rejects.toThrow(new RegExp(customMessage));
+        ).rejects.toThrow(customMessage);
     });
 });
 

@@ -1,5 +1,10 @@
 import * as core from "@actions/core";
-import { getInputsOrDefaults, IInputs, validateInputs } from "./inputs";
+import {
+    GenerateChangelogOptions,
+    getInputsOrDefaults,
+    IInputs,
+    validateInputs,
+} from "./inputs";
 import { createReleaseFile } from "./helpers/utility";
 import { createPullRequest } from "./helpers/prHelper";
 import { IActionOutputs, setOutputs } from "./outputs";
@@ -10,7 +15,6 @@ import {
 } from "./helpers/standard-version";
 import { push, setGitConfigs } from "./helpers/git";
 import { readChangelogSection } from "./helpers/changelog";
-import { ExecOutput } from "@actions/exec";
 
 const run = (
     default_inputs: IInputs,
@@ -33,8 +37,10 @@ function mainProcess(
     package_json_file: string,
     changelog_file: string
 ): Promise<void> {
-    return getInputsOrDefaults(default_inputs).then(inputs =>
-        _validateInputs(inputs, package_json_file).then(() => {
+    return _getValidatedInputs(default_inputs, package_json_file).then(
+        inputs => {
+            if (inputs.isTestMode) core.warning("The test mode is enabled.");
+
             const outputs: IActionOutputs = {
                 version: "",
                 changelog: "",
@@ -42,48 +48,82 @@ function mainProcess(
                 "pull-request-url": "",
             };
             return installStandardVersionPackage()
-                .then(() => setGitConfigs(inputs.gitEmail, inputs.gitUsername))
                 .then(() =>
-                    standardVersionRelease(
+                    _standardVersionRelease(
+                        inputs.gitEmail,
+                        inputs.gitUsername,
                         inputs.generateChangelog,
                         changelog_file,
                         inputs.inputVersion,
                         inputs.changelogHeaderRegex
                     )
                 )
-                .then(() =>
+                .then(newVersion =>
                     _releaseFiles(
                         inputs.skipReleaseFile,
                         inputs.releaseDirectory,
                         inputs.releaseFileName,
                         outputs
                     )
-                )
-                .then(() => _push(inputs.isTestMode))
-                .then(() => _setVersionToOutput(package_json_file, outputs))
-                .then(newVersion =>
-                    _changelog(
-                        changelog_file,
-                        newVersion,
-                        outputs,
-                        inputs.changelogHeaderRegex
-                    ).then(changelog =>
-                        _createPr(
-                            outputs,
-                            changelog,
-                            inputs.createPrForBranchName,
-                            inputs.isTestMode
+                        .then(() => push(inputs.isTestMode))
+                        .then(() =>
+                            _changelog(
+                                changelog_file,
+                                newVersion,
+                                outputs,
+                                inputs.changelogHeaderRegex
+                            )
                         )
-                    )
-                )
-                .then(() => setOutputs(outputs));
-        })
+                        .then(changelog =>
+                            _createPr(
+                                outputs,
+                                changelog,
+                                inputs.createPrForBranchName,
+                                inputs.isTestMode
+                            )
+                        )
+                        .then(() => (outputs.version = newVersion))
+                        .then(() => setOutputs(outputs))
+                );
+        }
     );
 }
 
-function _validateInputs(inputs: IInputs, package_json_file: string) {
+function _getValidatedInputs(
+    default_inputs: IInputs,
+    package_json_file: string
+): Promise<IInputs> {
+    return getInputsOrDefaults(default_inputs).then(inputs =>
+        _validateInputs(inputs, package_json_file).then(() => inputs)
+    );
+}
+
+function _standardVersionRelease(
+    gitEmail: string,
+    gitUsername: string,
+    generateChangelog: GenerateChangelogOptions,
+    changelog_file: string,
+    inputVersion?: string,
+    changelogHeaderRegex?: RegExp
+): Promise<string> {
+    return setGitConfigs(gitEmail, gitUsername).then(() =>
+        standardVersionRelease(
+            generateChangelog,
+            changelog_file,
+            inputVersion,
+            changelogHeaderRegex
+        )
+    );
+}
+
+function _validateInputs(
+    inputs: IInputs,
+    package_json_file: string
+): Promise<void> {
     return readVersionFromNpm(package_json_file).then(currentVersion =>
-        validateInputs(inputs, currentVersion)
+        validateInputs(inputs, currentVersion).then(() =>
+            core.info("Inputs validated successfully.")
+        )
     );
 }
 
@@ -93,18 +133,12 @@ function _createPr(
     createPrForBranchName?: string,
     isTestMode: boolean = false
 ): Promise<string | null> {
-    if (isTestMode) {
-        core.info(
-            "The test mode is enabled so skipping pull request creation."
-        );
-        return Promise.resolve(null);
-    }
     if (!createPrForBranchName) {
         core.info("No branch name provided so skipping pull request creation.");
         return Promise.resolve(null);
     }
 
-    return createPullRequest(createPrForBranchName, body).then(
+    return createPullRequest(createPrForBranchName, body, isTestMode).then(
         prLink => (outputs["pull-request-url"] = prLink ?? "")
     );
 }
@@ -124,21 +158,6 @@ function _releaseFiles(
     return createReleaseFile(releaseDirectory, releaseFileName).then(
         releaseFileName => (outputs["release-filename"] = releaseFileName ?? "")
     );
-}
-
-function _push(isTestMode: boolean): Promise<ExecOutput | null> {
-    if (isTestMode) return Promise.resolve(null);
-    return push();
-}
-
-function _setVersionToOutput(
-    package_json_file: string,
-    outputs: IActionOutputs
-) {
-    return readVersionFromNpm(package_json_file).then(version => {
-        outputs.version = version;
-        return version;
-    });
 }
 
 function _changelog(

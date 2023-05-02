@@ -34,7 +34,6 @@ describe("createPullRequest", () => {
                             "Warning: 7 uncommitted changes\n" +
                             "\n" +
                             `Creating pull request for ${currentBranchName} into ${createPrForBranchName} in user/repo\n` +
-                            "\n" +
                             prLink,
                         exitCode: 0,
                         stderr: "",
@@ -103,11 +102,15 @@ describe("createPullRequest", () => {
                 },
                 {
                     command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-                    success: false,
-                    rejectMessage:
-                        "Warning: 7 uncommitted changes\n" +
-                        'a pull request for branch "dev" into branch "main" already exists:\n' +
-                        "https://github.com/user/repo/pull/1000\n",
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "Warning: 7 uncommitted changes\n" +
+                            `a pull request for branch ${currentBranchName} into branch ${createPrForBranchName} already exists:\n` +
+                            `${prLink}`,
+                        exitCode: 1,
+                        stderr: "",
+                    },
                 },
                 {
                     command: `gh pr edit "${prLink}" --body "${body}"`,
@@ -121,8 +124,9 @@ describe("createPullRequest", () => {
             ])
         );
 
-        const output = await createPullRequest(createPrForBranchName, body);
-        expect(output).toBe(prLink);
+        await expect(
+            createPullRequest(createPrForBranchName, body)
+        ).resolves.toBe(prLink);
     });
 
     it("create pr fails because it already exists but update operation fails because can not find pr link", async () => {
@@ -143,10 +147,15 @@ describe("createPullRequest", () => {
                 },
                 {
                     command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-                    success: false,
-                    rejectMessage:
-                        "Warning: 7 uncommitted changes\n" +
-                        'a pull request for branch "dev" into branch "main" already exists:\n',
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "Warning: 7 uncommitted changes\n" +
+                            `a pull request for branch ${currentBranchName} into branch ${createPrForBranchName} already exists:\n` +
+                            "NO LINK!",
+                        exitCode: 1,
+                        stderr: "",
+                    },
                 },
             ])
         );
@@ -177,11 +186,15 @@ describe("createPullRequest", () => {
                 },
                 {
                     command: `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`,
-                    success: false,
-                    rejectMessage:
-                        "Warning: 7 uncommitted changes\n" +
-                        'a pull request for branch "dev" into branch "main" already exists:\n' +
-                        "https://github.com/user/repo/pull/1000\n",
+                    success: true,
+                    resolve: {
+                        stdout:
+                            "Warning: 7 uncommitted changes\n" +
+                            `a pull request for branch ${currentBranchName} into branch ${createPrForBranchName} already exists:\n` +
+                            `${prLink}`,
+                        exitCode: 1,
+                        stderr: "",
+                    },
                 },
                 {
                     command: `gh pr edit "${prLink}" --body "${body}"`,

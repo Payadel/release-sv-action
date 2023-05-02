@@ -103,8 +103,8 @@ export function detectNewVersion(inputVersion?: string): Promise<string> {
     return runDry(releaseCommand).then(parseNewVersionFromText);
 }
 
-function parseNewVersionFromText(text: string): string {
-    const regex = /v(\d+\.\d+\.\d+)/;
+export function parseNewVersionFromText(text: string): string {
+    const regex = /✔ tagging release +v(\S+)/;
     const match = text.match(regex);
     if (match) return match[1];
     throw new Error(`Can not detect new version from ${text}`);

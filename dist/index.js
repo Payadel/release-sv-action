@@ -57,18 +57,21 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getNewestChangelogVersion = exports.isNeedGenerateChangelog = exports.getChangelogHeaders = exports.readChangelogSection = exports.DEFAULT_CHANGELOG_VERSION_REGEX = exports.DEFAULT_CHANGELOG_HEADER_REGEX = void 0;
 const utility_1 = __nccwpck_require__(8499);
 const version_1 = __nccwpck_require__(8882);
 const core = __importStar(__nccwpck_require__(2186));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
 exports.DEFAULT_CHANGELOG_HEADER_REGEX = new RegExp("#+( )+((\\[[^\\]]+]\\([^)]+\\))|[^ ]+)( )+\\([^)]+\\)");
 exports.DEFAULT_CHANGELOG_VERSION_REGEX = new RegExp("(?:[[^]]*]|)s*([a-zA-Z0-9.]+)");
 function readChangelogSection(changelog_file, targetVersion, changelogHeaderRegex) {
     return (0, utility_1.readFile)(changelog_file).then(content => {
-        core.debug(`Read ${changelog_file}.`);
         const lines = content.split("\n");
-        core.debug(`It has ${lines.length} lines.`);
+        core.debug(`The ${changelog_file} has ${lines.length} lines.`);
         changelogHeaderRegex =
             changelogHeaderRegex || exports.DEFAULT_CHANGELOG_HEADER_REGEX;
         core.debug(`Regex: ${changelogHeaderRegex.source}`);
@@ -123,8 +126,10 @@ function isNeedGenerateChangelog(generateChangelogOption, changelog_file, inputV
     return new Promise((resolve, reject) => {
         switch (generateChangelogOption) {
             case "never":
+                core.info("generate-changelog is set to 'never' so skipping generate changelog.");
                 return resolve(false);
             case "always":
+                core.info("generate-changelog is set to 'always' so trying to generate changelog.");
                 return resolve(true);
             case "auto":
                 changelogHeaderRegex =
@@ -132,7 +137,12 @@ function isNeedGenerateChangelog(generateChangelogOption, changelog_file, inputV
                 changelogVersionRegex =
                     changelogVersionRegex || exports.DEFAULT_CHANGELOG_VERSION_REGEX;
                 return autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex, changelogVersionRegex, inputVersion)
-                    .then(resolve)
+                    .then(needGenerateChangelog => {
+                    core.info(`generate-changelog is set to 'auto' ${needGenerateChangelog
+                        ? "the changelog should be created."
+                        : "No need to generate changelog."}`);
+                    return resolve(needGenerateChangelog);
+                })
                     .catch(reject);
             default:
                 return new reject(`The generate changelog option (${generateChangelogOption}) is not supported.`);
@@ -149,6 +159,8 @@ function autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex,
     }));
 }
 function getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex) {
+    if (!fs_1.default.existsSync(changelog_file))
+        return Promise.resolve(null);
     return (0, utility_1.readFile)(changelog_file).then(content => {
         const lines = content.split("\n");
         core.debug(`${changelog_file} was read. It has ${lines.length} lines.`);
@@ -163,13 +175,37 @@ exports.getNewestChangelogVersion = getNewestChangelogVersion;
 /***/ }),
 
 /***/ 7052:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isBranchNameExistsInRemote = exports.isBranchNameExistsInLocal = exports.ensureBranchNameIsValid = exports.push = exports.setGitConfigs = exports.getGitRootDir = exports.getCurrentBranchName = void 0;
 const utility_1 = __nccwpck_require__(8499);
+const core = __importStar(__nccwpck_require__(2186));
 function getCurrentBranchName() {
     return (0, utility_1.execCommand)("git rev-parse --abbrev-ref HEAD", "Detect current branch name failed.").then(result => result.stdout.trim());
 }
@@ -182,8 +218,19 @@ function setGitConfigs(email, username) {
     return (0, utility_1.execCommand)(`git config --global user.email "${email}"`).then(() => (0, utility_1.execCommand)(`git config --global user.name "${username}"`));
 }
 exports.setGitConfigs = setGitConfigs;
-function push() {
-    return getCurrentBranchName().then(currentBranchName => (0, utility_1.execCommand)(`git push --follow-tags origin ${currentBranchName}`));
+function push(testMode = false) {
+    return getCurrentBranchName().then(currentBranchName => {
+        const command = `git push --follow-tags origin ${currentBranchName}`;
+        if (testMode) {
+            core.info(`Test mode is enabled so skipping push command and return fake output. Command: ${command}`);
+            return Promise.resolve({
+                stdout: "OK!",
+                stderr: "",
+                exitCode: 0,
+            });
+        }
+        return (0, utility_1.execCommand)(command);
+    });
 }
 exports.push = push;
 function ensureBranchNameIsValid(branchName) {
@@ -229,37 +276,64 @@ exports.isBranchNameExistsInRemote = isBranchNameExistsInRemote;
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createPullRequest = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 const utility_1 = __nccwpck_require__(8499);
 const git_1 = __nccwpck_require__(7052);
-function createPullRequest(createPrForBranchName, body) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return (0, git_1.getCurrentBranchName)()
-            .then(currentBranchName => createOrUpdatePr(createPrForBranchName, currentBranchName, body))
-            .then(output => getPrLink(output.stdout, `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}`));
-    });
+function createPullRequest(createPrForBranchName, body, testMode = false) {
+    return (0, git_1.getCurrentBranchName)()
+        .then(currentBranchName => createOrUpdatePr(createPrForBranchName, currentBranchName, body, testMode))
+        .then(output => getPrLink(output.stdout, `Failed to extract pull request URL from command output.\nOutput: ${output.stdout}\n${output.stderr}`));
 }
 exports.createPullRequest = createPullRequest;
-function createOrUpdatePr(createPrForBranchName, currentBranchName, body) {
+function createOrUpdatePr(createPrForBranchName, currentBranchName, body, testMode = false) {
     createPrForBranchName = encodeDoubleQuotation(createPrForBranchName);
     currentBranchName = encodeDoubleQuotation(currentBranchName);
     body = encodeDoubleQuotation(body);
-    return (0, utility_1.execCommand)(`gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`, `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`).catch(e => {
-        const message = e instanceof Error ? e.message : e.toString();
+    const command = `gh pr create -B "${createPrForBranchName}" -H "${currentBranchName}" --title "Merge ${currentBranchName} into ${createPrForBranchName}" --body "${body}"`;
+    if (testMode) {
+        core.info(`The test mode is enabled so skipping create pull request and return fake output. Command: ${command}`);
+        return Promise.resolve({
+            stdout: `Creating pull request for ${currentBranchName} into ${createPrForBranchName} in user/repo\nhttps://github.com/user/repo/pull/1000`,
+            exitCode: 0,
+            stderr: "",
+        });
+    }
+    return (0, utility_1.execCommand)(command, `Create pull request from ${currentBranchName} to ${createPrForBranchName} with title 'Merge ${currentBranchName} into ${createPrForBranchName}' failed.`, [], {
+        silent: true,
+        ignoreReturnCode: true,
+    }).then(output => {
+        if (output.exitCode === 0)
+            return output;
+        const message = `${output.stdout}\n${output.stderr}`;
         if (message.toLowerCase().includes("already exists")) {
-            return getPrLink(message, `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.`).then(prLink => updatePr(prLink, body));
+            return getPrLink(message, `I tried to make a pull request from ${currentBranchName} to ${createPrForBranchName} but it didn't work. It seems that this pull request exists. I tried to find the link in the message, but I didn't succeed.\nMain message: ${message}`).then(prLink => updatePr(prLink, body));
         }
-        throw e;
+        throw new Error(message);
     });
 }
 function getPrLink(str, errorMessage) {
@@ -274,7 +348,7 @@ function getPrLink(str, errorMessage) {
 function updatePr(prLinkOrNumber, body) {
     prLinkOrNumber = encodeDoubleQuotation(prLinkOrNumber);
     body = encodeDoubleQuotation(body);
-    return (0, utility_1.execCommand)(`gh pr edit "${prLinkOrNumber}" --body "${body}"`, `Update pull request '${prLinkOrNumber}' failed.`);
+    return (0, utility_1.execCommand)(`gh pr edit "${prLinkOrNumber}" --body "${body}"`, `Update pull request '${prLinkOrNumber}' failed.`, [], { silent: true });
 }
 function encodeDoubleQuotation(text) {
     return text.replace(/"/g, '"');
@@ -292,6 +366,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.standardVersionRelease = exports.runDry = exports.getReleaseCommand = exports.installStandardVersionPackage = void 0;
 const utility_1 = __nccwpck_require__(8499);
 const changelog_1 = __nccwpck_require__(3062);
+const version_1 = __nccwpck_require__(8882);
 function installStandardVersionPackage() {
     return (0, utility_1.execCommand)("npm install -g standard-version", "Can not install standard version npm package.");
 }
@@ -315,7 +390,8 @@ exports.runDry = runDry;
 function standardVersionRelease(generateChangelogOption, changelog_file, inputVersion, changelogHeaderRegex) {
     return (0, changelog_1.isNeedGenerateChangelog)(generateChangelogOption, changelog_file, inputVersion, changelogHeaderRegex)
         .then(needCreateChangelog => getReleaseCommand(!needCreateChangelog, inputVersion))
-        .then(releaseCommand => (0, utility_1.execCommand)(releaseCommand));
+        .then(releaseCommand => (0, utility_1.execCommand)(releaseCommand))
+        .then(output => (0, version_1.parseNewVersionFromText)(output.stdout));
 }
 exports.standardVersionRelease = standardVersionRelease;
 //# sourceMappingURL=standard-version.js.map
@@ -401,7 +477,7 @@ function getInputOrDefault(name, default_value = undefined, trimWhitespace = tru
         required,
     });
     if (!input || input === "") {
-        core.debug(`Try get ${name} but it is not provided so return default value '${default_value}'`);
+        core.debug(`${name}: ${input} (default value)`);
         return default_value;
     }
     core.debug(`${name}: ${input}`);
@@ -457,7 +533,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.detectNewVersion = exports.compareVersions = exports.readVersionFromNpm = exports.versionMustValid = exports.SEMANTIC_VERSION_REGEX = void 0;
+exports.parseNewVersionFromText = exports.detectNewVersion = exports.compareVersions = exports.readVersionFromNpm = exports.versionMustValid = exports.SEMANTIC_VERSION_REGEX = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const utility_1 = __nccwpck_require__(8499);
 const standard_version_1 = __nccwpck_require__(6837);
@@ -528,12 +604,13 @@ function detectNewVersion(inputVersion) {
 }
 exports.detectNewVersion = detectNewVersion;
 function parseNewVersionFromText(text) {
-    const regex = /v(\d+\.\d+\.\d+)/;
+    const regex = /✔ tagging release +v(\S+)/;
     const match = text.match(regex);
     if (match)
         return match[1];
     throw new Error(`Can not detect new version from ${text}`);
 }
+exports.parseNewVersionFromText = parseNewVersionFromText;
 //# sourceMappingURL=version.js.map
 
 /***/ }),
@@ -715,7 +792,9 @@ const run = (default_inputs, package_json_path, changelog_file) => mainProcess(d
 });
 exports["default"] = run;
 function mainProcess(default_inputs, package_json_file, changelog_file) {
-    return (0, inputs_1.getInputsOrDefaults)(default_inputs).then(inputs => _validateInputs(inputs, package_json_file).then(() => {
+    return _getValidatedInputs(default_inputs, package_json_file).then(inputs => {
+        if (inputs.isTestMode)
+            core.warning("The test mode is enabled.");
         const outputs = {
             version: "",
             changelog: "",
@@ -723,28 +802,30 @@ function mainProcess(default_inputs, package_json_file, changelog_file) {
             "pull-request-url": "",
         };
         return (0, standard_version_1.installStandardVersionPackage)()
-            .then(() => (0, git_1.setGitConfigs)(inputs.gitEmail, inputs.gitUsername))
-            .then(() => (0, standard_version_1.standardVersionRelease)(inputs.generateChangelog, changelog_file, inputs.inputVersion, inputs.changelogHeaderRegex))
-            .then(() => _releaseFiles(inputs.skipReleaseFile, inputs.releaseDirectory, inputs.releaseFileName, outputs))
-            .then(() => _push(inputs.isTestMode))
-            .then(() => _setVersionToOutput(package_json_file, outputs))
-            .then(newVersion => _changelog(changelog_file, newVersion, outputs, inputs.changelogHeaderRegex).then(changelog => _createPr(outputs, changelog, inputs.createPrForBranchName, inputs.isTestMode)))
-            .then(() => (0, outputs_1.setOutputs)(outputs));
-    }));
+            .then(() => _standardVersionRelease(inputs.gitEmail, inputs.gitUsername, inputs.generateChangelog, changelog_file, inputs.inputVersion, inputs.changelogHeaderRegex))
+            .then(newVersion => _releaseFiles(inputs.skipReleaseFile, inputs.releaseDirectory, inputs.releaseFileName, outputs)
+            .then(() => (0, git_1.push)(inputs.isTestMode))
+            .then(() => _changelog(changelog_file, newVersion, outputs, inputs.changelogHeaderRegex))
+            .then(changelog => _createPr(outputs, changelog, inputs.createPrForBranchName, inputs.isTestMode))
+            .then(() => (outputs.version = newVersion))
+            .then(() => (0, outputs_1.setOutputs)(outputs)));
+    });
+}
+function _getValidatedInputs(default_inputs, package_json_file) {
+    return (0, inputs_1.getInputsOrDefaults)(default_inputs).then(inputs => _validateInputs(inputs, package_json_file).then(() => inputs));
+}
+function _standardVersionRelease(gitEmail, gitUsername, generateChangelog, changelog_file, inputVersion, changelogHeaderRegex) {
+    return (0, git_1.setGitConfigs)(gitEmail, gitUsername).then(() => (0, standard_version_1.standardVersionRelease)(generateChangelog, changelog_file, inputVersion, changelogHeaderRegex));
 }
 function _validateInputs(inputs, package_json_file) {
-    return (0, version_1.readVersionFromNpm)(package_json_file).then(currentVersion => (0, inputs_1.validateInputs)(inputs, currentVersion));
+    return (0, version_1.readVersionFromNpm)(package_json_file).then(currentVersion => (0, inputs_1.validateInputs)(inputs, currentVersion).then(() => core.info("Inputs validated successfully.")));
 }
 function _createPr(outputs, body, createPrForBranchName, isTestMode = false) {
-    if (isTestMode) {
-        core.info("The test mode is enabled so skipping pull request creation.");
-        return Promise.resolve(null);
-    }
     if (!createPrForBranchName) {
         core.info("No branch name provided so skipping pull request creation.");
         return Promise.resolve(null);
     }
-    return (0, prHelper_1.createPullRequest)(createPrForBranchName, body).then(prLink => (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : ""));
+    return (0, prHelper_1.createPullRequest)(createPrForBranchName, body, isTestMode).then(prLink => (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : ""));
 }
 function _releaseFiles(skipReleaseFile, releaseDirectory, releaseFileName, outputs) {
     if (skipReleaseFile) {
@@ -752,17 +833,6 @@ function _releaseFiles(skipReleaseFile, releaseDirectory, releaseFileName, outpu
         return Promise.resolve(null);
     }
     return (0, utility_1.createReleaseFile)(releaseDirectory, releaseFileName).then(releaseFileName => (outputs["release-filename"] = releaseFileName !== null && releaseFileName !== void 0 ? releaseFileName : ""));
-}
-function _push(isTestMode) {
-    if (isTestMode)
-        return Promise.resolve(null);
-    return (0, git_1.push)();
-}
-function _setVersionToOutput(package_json_file, outputs) {
-    return (0, version_1.readVersionFromNpm)(package_json_file).then(version => {
-        outputs.version = version;
-        return version;
-    });
 }
 function _changelog(changelog_file, newVersion, outputs, changelogHeaderRegex) {
     return (0, changelog_1.readChangelogSection)(changelog_file, newVersion, changelogHeaderRegex).then(changelog => {

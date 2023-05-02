@@ -69,15 +69,20 @@ describe("standardVersionRelease", () => {
         jest.resetAllMocks();
     });
 
-    it("success", async () => {
+    it("should run command and return new version", async () => {
+        const newVersion = "1.0.0";
+
         jest.spyOn(exec, "getExecOutput").mockImplementation(command =>
             mockGetExecOutput(command, [
                 {
-                    command:
-                        "standard-version --release-as 1.0.0 --skip.changelog",
+                    command: `standard-version --release-as ${newVersion} --skip.changelog`,
                     success: true,
                     resolve: {
-                        stdout: "Ok",
+                        stdout:
+                            `✔ bumping version in package.json from 0.0.0 to ${newVersion}\n` +
+                            "✔ committing package.json\n" +
+                            `✔ tagging release v${newVersion}\n` +
+                            "ℹ Run `git push --follow-tags origin dev && npm publish` to publish",
                         exitCode: 0,
                         stderr: "",
                     },
@@ -85,7 +90,8 @@ describe("standardVersionRelease", () => {
             ])
         );
 
-        const output = await standardVersionRelease("never", "", "1.0.0");
-        expect(output.stdout).toBe("Ok");
+        await expect(
+            standardVersionRelease("never", "", "1.0.0")
+        ).resolves.toBe("1.0.0");
     });
 });
