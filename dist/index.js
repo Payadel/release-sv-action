@@ -825,7 +825,7 @@ function _createPr(outputs, body, createPrForBranchName, isTestMode = false) {
         core.info("No branch name provided so skipping pull request creation.");
         return Promise.resolve(null);
     }
-    return (0, prHelper_1.createPullRequest)(createPrForBranchName, body).then(prLink => (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : ""));
+    return (0, prHelper_1.createPullRequest)(createPrForBranchName, body, isTestMode).then(prLink => (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : ""));
 }
 function _releaseFiles(skipReleaseFile, releaseDirectory, releaseFileName, outputs) {
     if (skipReleaseFile) {
