@@ -6,36 +6,36 @@ a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactio
 
 ## Development environment setup
 
-> **[?]**
-> Proceed to describe how to setup local development environment.
-> e.g:
-
 To set up a development environment, please follow these steps:
 
 1. Clone the repo
 
    ```sh
-   git clone https://github.com/GITHUB_USERNAME/REPO_SLUG
+   git clone https://github.com/Payadel/release-sv-action
    ```
 
-2. To run this project, you will need to add the following environment variables to your .env file
+2. Run requirements.py:
 
-`API_KEY`
+```shell
+ chmod +x requirements.py && ./requirements.py
+```
 
-`ANOTHER_API_KEY`
+Or
 
-3. TODO
+```shell
+ python3 requirements.py
+```
 
-4. Running Tests. To run tests, run the following command
+3. Run tests to ensure everything is working:
 
-```bash
-  npm run test
+```shell
+   npm run all
 ```
 
 ## Issues and feature requests
 
 You've found a bug in the source code, a mistake in the documentation or maybe you'd like a new feature? You can help us
-by [submitting an issue on GitHub](https://github.com/GITHUB_USERNAME/REPO_SLUG/issues). Before you create an issue,
+by [submitting an issue on GitHub](https://github.com/Payadel/release-sv-action/issues). Before you create an issue,
 make sure to search the issue archive -- your issue may have already been addressed!
 
 Please try to create bug reports that are:
@@ -50,7 +50,7 @@ Please try to create bug reports that are:
 ### How to submit a Pull Request
 
 1. Search our repository for open or closed
-   [Pull Requests](https://github.com/GITHUB_USERNAME/REPO_SLUG/pulls)
+   [Pull Requests](https://github.com/Payadel/release-sv-action/pulls)
    that relate to your submission. You don't want to duplicate effort.
 2. Fork the project
 3. Create your feature branch (`git checkout -b feat/amazing_feature`)

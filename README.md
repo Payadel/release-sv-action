@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>`release-sv-action`</h1>
+  <h1>release-sv-action</h1>
   <br />
   <a href="#getting-started"><strong>Getting Started »</strong></a>
   <br />
@@ -105,7 +105,7 @@ action.
 
 ## Usage
 
-To use release-sv-action in your GitHub Actions workflow, you can add the following code to your
+To use `release-sv-action` in your GitHub Actions workflow, you can add the following code to your
 .github/workflows/release.yml file:
 
 ```yaml
@@ -231,9 +231,6 @@ Please see the [CHANGELOG.md](CHANGELOG.md) file.
   repository. This ensures that changelogs are accurate and up-to-date, and reduces the likelihood of errors.
 - **Flexible configuration:** The action can be configured to suit the needs of the user. For example, users can specify
   a branch name to create pull requests for, or choose whether to generate new changelogs based on specific criteria.
-- **Standard-version compatibility:** The action is specifically designed for projects that use the `standard-version`
-  npm package. This ensures that the release process is optimized for these projects and reduces the likelihood of
-  compatibility issues.
 - **Tested functions:** `release-sv-action` has been tested with `Jest` to ensure that its functions are reliable and
   efficient. This helps to reduce the likelihood of bugs and other issues.
 
