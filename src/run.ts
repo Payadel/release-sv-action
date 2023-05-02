@@ -138,7 +138,7 @@ function _createPr(
         return Promise.resolve(null);
     }
 
-    return createPullRequest(createPrForBranchName, body).then(
+    return createPullRequest(createPrForBranchName, body, isTestMode).then(
         prLink => (outputs["pull-request-url"] = prLink ?? "")
     );
 }
