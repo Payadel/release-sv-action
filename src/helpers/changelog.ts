@@ -2,6 +2,7 @@ import { GenerateChangelogOptions } from "../inputs";
 import { readFile } from "./utility";
 import { detectNewVersion } from "./version";
 import * as core from "@actions/core";
+import fs from "fs";
 
 export const DEFAULT_CHANGELOG_HEADER_REGEX = new RegExp(
     "#+( )+((\\[[^\\]]+]\\([^)]+\\))|[^ ]+)( )+\\([^)]+\\)"
@@ -167,6 +168,8 @@ export function getNewestChangelogVersion(
     changelogHeaderRegex: RegExp,
     changelogVersionRegex: RegExp
 ): Promise<string | null> {
+    if (!fs.existsSync(changelog_file)) return Promise.resolve(null);
+
     return readFile(changelog_file).then(content => {
         const lines = content.split("\n");
         core.debug(`${changelog_file} was read. It has ${lines.length} lines.`);
