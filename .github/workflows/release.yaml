@@ -36,20 +36,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Print inputs
-        run: |
-          echo "generate-changelog: ${{ inputs.generate-changelog }}"
-          echo "version: ${{ inputs.version }}"
-          echo "create_pr_for_branch: ${{ inputs.create_pr_for_branch }}"
-          echo "Current Branch: $(git rev-parse --abbrev-ref HEAD)"
+      - name: Inputs
+        uses: Payadel/inputs@v0.2.3
+        id: inputs
+        with:
+          inputs: |
+            - name: version
+              default: ''
+            - name: create-pr-for-branch
+              default: 'main'
+            - name: generate-changelog
+              default: 'auto'
+            - name: current-branch-name
+              default: '$(git rev-parse --abbrev-ref HEAD)'
 
       - name: Release
         uses: ./
         id: release
         with:
-          version: ${{ inputs.version }}
-          generate-changelog: ${{ inputs.generate-changelog }}
-          create-pr-for-branch: ${{ inputs.create_pr_for_branch }}
+          version: ${{ steps.inputs.outputs.version }}
+          generate-changelog: ${{ steps.inputs.outputs.generate-changelog }}
+          create-pr-for-branch: ${{ steps.inputs.outputs.create_pr_for_branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
