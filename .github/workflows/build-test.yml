@@ -57,7 +57,7 @@ jobs:
           version-regex: ''
 
       - name: Validate with inputs
-        uses: Payadel/assert@v1.0.0
+        uses: Payadel/assert@v1.0.1
         with:
           fail-fast: false
           verbose: true

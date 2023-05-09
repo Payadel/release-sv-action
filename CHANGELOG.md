@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/Payadel/release-sv-action/compare/v0.3.0...v0.3.1) (2023-05-02)
+
+
+### Development: CI/CD, Build, etc
+
+* **deps-dev:** bump @types/node from 18.16.0 to 18.16.3 ([f123276](https://github.com/Payadel/release-sv-action/commit/f1232769a25853b64eb5a9419b692bb12269fbad))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([c269d8c](https://github.com/Payadel/release-sv-action/commit/c269d8c65be7f47ea863d1758e6ccc4b321931e2))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.1 to 5.59.2 ([818caea](https://github.com/Payadel/release-sv-action/commit/818caea1ca356b85eff4f8e76f81de3f4dfbf7f8))
+
+
+### Documents
+
+* update docs ([58d5ec9](https://github.com/Payadel/release-sv-action/commit/58d5ec9baa512d417999c2a37a1c21cecdeb6f61))
+* update README.md ([cae0f3f](https://github.com/Payadel/release-sv-action/commit/cae0f3f13331e4d5347308b9f9b19024d1923737))
+
+
+### Refactors
+
+* run.ts ([f8da260](https://github.com/Payadel/release-sv-action/commit/f8da260ffe81d940db86b868242a73acc6e0604f))
+
+
+### Fixes
+
+* detect new version from release output instead get from `package.json` ([3d2a8f4](https://github.com/Payadel/release-sv-action/commit/3d2a8f460644194fca83f8b8350c525eb0d6c902))
+* fix bug when `changelog.md` file is not exists ([45bddb6](https://github.com/Payadel/release-sv-action/commit/45bddb63710453662824bac4400d2924d6eda2f7))
+* fix test mode in create pull request function ([e06900c](https://github.com/Payadel/release-sv-action/commit/e06900c55eb32b62d01485726e10a5d6f2acf796))
+* fix update pull request bug ([5ef1c7c](https://github.com/Payadel/release-sv-action/commit/5ef1c7ccae644243f2e37bf9ac75f0ac29097ca8))
+* improve logs ([12e43ff](https://github.com/Payadel/release-sv-action/commit/12e43ff57a85ddb69eec147ef964e95fbb1aa0d9))
+* improve test mode ([068e52e](https://github.com/Payadel/release-sv-action/commit/068e52e7713c83d768be7558c01ee5311aa26ee6))
+* improve version detection from `standard-version` output ([344852a](https://github.com/Payadel/release-sv-action/commit/344852a724105000af09dcb5f46313eeebc48aa4))
+* minor updates ([c145b7c](https://github.com/Payadel/release-sv-action/commit/c145b7c1e51b8bb18730bf4dc87bf81c9faeb3cd))
+
 ## [0.3.0](https://github.com/Payadel/release-sv-action/compare/v0.2.2...v0.3.0) (2023-05-01)
 
 
