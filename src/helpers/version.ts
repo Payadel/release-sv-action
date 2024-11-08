@@ -97,10 +97,11 @@ export function compareVersions(version1: string, version2: string): number {
     return 0;
 }
 
-export function detectNewVersion(inputVersion?: string): Promise<string> {
+export async function detectNewVersion(inputVersion?: string): Promise<string> {
     if (inputVersion) return Promise.resolve(inputVersion);
     const releaseCommand = getReleaseCommand(true, inputVersion);
-    return runDry(releaseCommand).then(parseNewVersionFromText);
+    const text = await runDry(releaseCommand);
+    return parseNewVersionFromText(text);
 }
 
 export function parseNewVersionFromText(text: string): string {

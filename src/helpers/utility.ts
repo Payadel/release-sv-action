@@ -17,19 +17,21 @@ export function execBashCommand(
     return execCommand(command, errorMessage, args, options);
 }
 
-export function execCommand(
+export async function execCommand(
     command: string,
     errorMessage?: string,
     args?: string[] | undefined,
     options?: exec.ExecOptions | undefined
 ): Promise<exec.ExecOutput> {
     core.debug(`Execute command: ${command}`);
-    return exec.getExecOutput(command, args, options).catch(error => {
+    try {
+        return await exec.getExecOutput(command, args, options);
+    } catch (error: any) {
         const title = errorMessage || `Execute '${command}' failed.`;
         const message =
             error instanceof Error ? error.message : error.toString();
         throw new Error(`${title}\n${message}`);
-    });
+    }
 }
 
 export function readFile(fileName: string): Promise<string> {
@@ -43,19 +45,19 @@ export function readFile(fileName: string): Promise<string> {
     });
 }
 
-export function createReleaseFile(
+export async function createReleaseFile(
     releaseDir: string,
     releaseFilename: string
 ): Promise<string> {
     if (!releaseFilename.endsWith(".zip")) releaseFilename += ".zip";
 
-    return getGitRootDir().then(rootDir => {
-        const outputPath = path.join(rootDir, releaseFilename);
-        return execBashCommand(
-            `(cd ${releaseDir}; zip -r ${outputPath} .)`,
-            `Can not create release file from '${releaseDir}' to '${outputPath}'.`
-        ).then(() => releaseFilename);
-    });
+    const rootDir = await getGitRootDir();
+    const outputPath = path.join(rootDir, releaseFilename);
+    await execBashCommand(
+        `(cd ${releaseDir}; zip -r ${outputPath} .)`,
+        `Can not create release file from '${releaseDir}' to '${outputPath}'.`
+    );
+    return releaseFilename;
 }
 
 export function getInputOrDefault(
