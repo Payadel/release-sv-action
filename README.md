@@ -150,7 +150,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: Payadel/release-sv-action@v0.3.0  # Ensure version is latest
+      - uses: Payadel/release-sv-action@v0.3.1  # Ensure version is latest
         id: release
         with:
           version: ${{ inputs.version }}
