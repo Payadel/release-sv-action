@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.2](https://github.com/Payadel/release-sv-action/compare/v0.3.1...v0.3.2) (2024-11-08)
+
+
+### Development: CI/CD, Build, etc
+
+* **deps-dev:** bump @action-validator/core and @action-validator/cli ([b1e4498](https://github.com/Payadel/release-sv-action/commit/b1e4498e034fa06c0b61c43ff73107316d9a1dbc))
+* **deps-dev:** bump @action-validator/core and @action-validator/cli ([587f1f9](https://github.com/Payadel/release-sv-action/commit/587f1f977692642ba8c8328e6b4941a357d508a9))
+* **deps-dev:** bump @types/node from 18.16.3 to 20.1.1 ([e0f7074](https://github.com/Payadel/release-sv-action/commit/e0f7074f91ae1a1a11897d0e2463b56e6b0a1bfd))
+* **deps-dev:** bump @types/node from 20.1.1 to 20.1.5 ([bc1d427](https://github.com/Payadel/release-sv-action/commit/bc1d42724233cd0f12ae8e535be4716513b4f025))
+* **deps-dev:** bump @types/node from 20.1.5 to 20.2.3 ([78d5c13](https://github.com/Payadel/release-sv-action/commit/78d5c13791c61d9461e11216e26b529dd166987b))
+* **deps-dev:** bump @types/node from 20.2.3 to 20.2.5 ([7bacfdf](https://github.com/Payadel/release-sv-action/commit/7bacfdf566f42ace39337244774c996945fc3198))
+* **deps-dev:** bump @types/node from 20.2.5 to 20.3.0 ([e623bf5](https://github.com/Payadel/release-sv-action/commit/e623bf5cee041fc4fe9f8672879ce516cde1ae01))
+* **deps-dev:** bump @types/node from 20.3.0 to 20.3.2 ([59e82d9](https://github.com/Payadel/release-sv-action/commit/59e82d9763747ace83834f8c2919eaa0ef3e1a1d))
+* **deps-dev:** bump @types/node from 20.3.2 to 20.3.3 ([94c7d4a](https://github.com/Payadel/release-sv-action/commit/94c7d4ac67c6b8ee527957948c0ca28ffaf8f9bb))
+* **deps-dev:** bump @types/node from 20.3.3 to 20.4.2 ([ebf17e3](https://github.com/Payadel/release-sv-action/commit/ebf17e3351a42b41950ed492faad5be80977e488))
+* **deps-dev:** bump @types/node from 20.4.2 to 20.4.5 ([f88607d](https://github.com/Payadel/release-sv-action/commit/f88607d4ea0ae8b364266f7d162fb3c76650dfdd))
+* **deps-dev:** bump @types/node from 20.4.5 to 20.10.5 ([1969342](https://github.com/Payadel/release-sv-action/commit/1969342f875b3fd6c96fbd140abed4fbc5bfff17))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([28eca5f](https://github.com/Payadel/release-sv-action/commit/28eca5f022d892cc8d45adaf3d7f081f1673236e))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([51aa290](https://github.com/Payadel/release-sv-action/commit/51aa29090985df1a9185a35da500b4b19611a20b))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([80c7ac5](https://github.com/Payadel/release-sv-action/commit/80c7ac5e42ba931dfe9a2f0d1cd312ad2f4bf136))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([f979270](https://github.com/Payadel/release-sv-action/commit/f979270d27358c0ad9dbff55efa810445e29eda9))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([550dce5](https://github.com/Payadel/release-sv-action/commit/550dce519fa4dc108882e44236b77520a3c2c16f))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([cbfd3ae](https://github.com/Payadel/release-sv-action/commit/cbfd3aebd9a0c322791c3a5e7a6bae71d2436f30))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([70d77df](https://github.com/Payadel/release-sv-action/commit/70d77dfe3a9e45db1972f6a4eecf7892051f785c))
+* **deps-dev:** bump @typescript-eslint/eslint-plugin ([335d8a2](https://github.com/Payadel/release-sv-action/commit/335d8a2153fe19e9919d00336274908fefc2099a))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.11 to 5.60.1 ([21fc013](https://github.com/Payadel/release-sv-action/commit/21fc0136c1b039b9ab804c95c62e23036264d000))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.2 to 5.59.5 ([09c2e1d](https://github.com/Payadel/release-sv-action/commit/09c2e1d8670bffe4a24c75c5c6b9cc4304205bae))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.5 to 5.59.6 ([898f86b](https://github.com/Payadel/release-sv-action/commit/898f86bcdeecf600d91e173a35d6c53860d34adb))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.6 to 5.59.7 ([1767475](https://github.com/Payadel/release-sv-action/commit/1767475d4d5c6b087ebd8969a645135441a5fee4))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.7 to 5.59.8 ([9e78d25](https://github.com/Payadel/release-sv-action/commit/9e78d25a15209477b0c20188d78cdddb2568cc06))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.8 to 5.59.9 ([65d1272](https://github.com/Payadel/release-sv-action/commit/65d127269cd006361aab1d63f16bec93be0682ac))
+* **deps-dev:** bump @typescript-eslint/parser from 5.59.9 to 5.59.11 ([1fe23fa](https://github.com/Payadel/release-sv-action/commit/1fe23fa9591b8ef02a747fddc328f6f441754af5))
+* **deps-dev:** bump @typescript-eslint/parser from 5.60.1 to 5.61.0 ([ebe28d3](https://github.com/Payadel/release-sv-action/commit/ebe28d39f524ab9b75680d52441ba763fe16418d))
+* **deps-dev:** bump @typescript-eslint/parser from 5.61.0 to 5.62.0 ([c7d866c](https://github.com/Payadel/release-sv-action/commit/c7d866c9dc9672cd72d8a7f6763e83fe9c927594))
+* **deps-dev:** bump eslint from 8.39.0 to 8.40.0 ([c2251f0](https://github.com/Payadel/release-sv-action/commit/c2251f0e2337224b0c9ac7cedee818410794ab52))
+* **deps-dev:** bump eslint from 8.40.0 to 8.41.0 ([25da11c](https://github.com/Payadel/release-sv-action/commit/25da11c69b2405bea86bec03bbd0d3840d8b3ec8))
+* **deps-dev:** bump eslint from 8.41.0 to 8.42.0 ([8d0d34d](https://github.com/Payadel/release-sv-action/commit/8d0d34ded1f8bb0bafcf21f4f19257d6366b56fb))
+* **deps-dev:** bump eslint from 8.42.0 to 8.43.0 ([2285e16](https://github.com/Payadel/release-sv-action/commit/2285e16f7690a8c57b420d1fe0654ca02286c553))
+* **deps-dev:** bump eslint from 8.43.0 to 8.44.0 ([c75e49e](https://github.com/Payadel/release-sv-action/commit/c75e49e642dfdb67e8e12660637711fc570f867e))
+* **deps-dev:** bump eslint-plugin-github from 4.7.0 to 4.8.0 ([dbfb3f5](https://github.com/Payadel/release-sv-action/commit/dbfb3f5e552f88ee32b1780958f82e7d7f4e9795))
+* **deps-dev:** bump eslint-plugin-github from 4.8.0 to 4.9.2 ([2ca586f](https://github.com/Payadel/release-sv-action/commit/2ca586f90f484bace99081320103ed8650dd085a))
+* **deps-dev:** bump eslint-plugin-jest from 27.2.1 to 27.2.2 ([24cd13e](https://github.com/Payadel/release-sv-action/commit/24cd13e26a44900355bda1bbf94046817e045377))
+* **deps-dev:** bump eslint-plugin-jest from 27.2.2 to 27.4.0 ([ab4156b](https://github.com/Payadel/release-sv-action/commit/ab4156b1e85743776adf1a0b8dae6f39ece6221f))
+* **deps-dev:** bump prettier from 2.8.8 to 3.1.1 ([4a52750](https://github.com/Payadel/release-sv-action/commit/4a52750eb79c71cb963f8881c6cc571eb3f65d8b))
+* **deps:** bump @actions/core from 1.10.0 to 1.10.1 ([28b9a52](https://github.com/Payadel/release-sv-action/commit/28b9a52c04a4d9e89505cef803c660e67934eb8b))
+* **deps:** bump actions/setup-python from 4 to 5 ([f273d83](https://github.com/Payadel/release-sv-action/commit/f273d8314bed8200625b06e02a5f09500dd01655))
+* **deps:** bump github/codeql-action from 2 to 3 ([a7595dc](https://github.com/Payadel/release-sv-action/commit/a7595dc1393360e7c114c3a13debffa5126022fc))
+* **deps:** bump Payadel/assert from 1.0.0 to 1.0.1 ([2003b92](https://github.com/Payadel/release-sv-action/commit/2003b92e2310c20f1c82106f4122d6eaa404c80b))
+* **deps:** bump payadel/changelog-sv-action from 0.0.4 to 0.0.5 ([50ac3a1](https://github.com/Payadel/release-sv-action/commit/50ac3a1cd181e53a9599d1004ac8b5479fbbaaef))
+* use `Payadel/inputs` in actions ([c5353d9](https://github.com/Payadel/release-sv-action/commit/c5353d912a36118f79c453b4bb845e7cf5c88c3d))
+
+
+### Documents
+
+* fix license badge ([bfcd1fb](https://github.com/Payadel/release-sv-action/commit/bfcd1fbd7cb41677470de12848bd8325d9a948ca))
+
+
+### Fixes
+
+* update package versions ([b8565b9](https://github.com/Payadel/release-sv-action/commit/b8565b9385511d1cda09afc55a3e998ecf1ddbb6))
+
 ### [0.3.1](https://github.com/Payadel/release-sv-action/compare/v0.3.0...v0.3.1) (2023-05-02)
 
 

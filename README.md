@@ -19,7 +19,7 @@
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Payadel/release-sv-action/build-test.yml?branch=dev)](https://github.com/Payadel/release-sv-action/blob/main/.github/workflows/build-test.yml)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Payadel/release-sv-action?include_prereleases)](https://github.com/Payadel/release-sv-action/releases)
 
-![GitHub](https://img.shields.io/github/license/User/Repo)
+![GitHub](https://img.shields.io/github/license/Payadel/release-sv-action)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/Payadel/release-sv-action/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
 </div>
