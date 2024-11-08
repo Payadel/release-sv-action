@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.3](https://github.com/Payadel/release-sv-action/compare/v0.3.2...v0.3.3) (2024-11-08)
+
+
+### Development: CI/CD, Build, etc
+
+* **deps-dev:** bump @babel/traverse from 7.21.3 to 7.23.2 ([84f4043](https://github.com/Payadel/release-sv-action/commit/84f4043d75de5ec28c23b5a70d8e116d8d91051f))
+* **deps-dev:** bump word-wrap from 1.2.3 to 1.2.4 ([ec9f8ab](https://github.com/Payadel/release-sv-action/commit/ec9f8ab560a32d474d2b67655114093ba0edddfd))
+* **deps-dev:** bump ws from 7.5.9 to 7.5.10 ([7342dae](https://github.com/Payadel/release-sv-action/commit/7342daefcd090f0076fe5f63dd0d486ee5e4e5d7))
+* **deps:** bump braces from 3.0.2 to 3.0.3 ([aaf3ef2](https://github.com/Payadel/release-sv-action/commit/aaf3ef2d42d69f6526be5015ee9d597f8f3fd210))
+* **deps:** bump tough-cookie from 4.1.2 to 4.1.3 ([aafd39c](https://github.com/Payadel/release-sv-action/commit/aafd39ca9cafe0d3bcf359f9d147cde5d975d233))
+* remove pull-request-check.yaml ([0c66b8a](https://github.com/Payadel/release-sv-action/commit/0c66b8a5af3c23722c920876344ff76e75500d1b))
+
+
+### Refactors
+
+* use async function ([206882b](https://github.com/Payadel/release-sv-action/commit/206882b3bbe645ef7de7f0e3422dd605ec0a71a8))
+
 ### [0.3.2](https://github.com/Payadel/release-sv-action/compare/v0.3.1...v0.3.2) (2024-11-08)
 
 
