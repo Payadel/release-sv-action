@@ -32,73 +32,61 @@ const run = (
 
 export default run;
 
-function mainProcess(
+async function mainProcess(
     default_inputs: IInputs,
     package_json_file: string,
     changelog_file: string
 ): Promise<void> {
-    return _getValidatedInputs(default_inputs, package_json_file).then(
-        inputs => {
-            if (inputs.isTestMode) core.warning("The test mode is enabled.");
-
-            const outputs: IActionOutputs = {
-                version: "",
-                changelog: "",
-                "release-filename": "",
-                "pull-request-url": "",
-            };
-            return installStandardVersionPackage()
-                .then(() =>
-                    _standardVersionRelease(
-                        inputs.gitEmail,
-                        inputs.gitUsername,
-                        inputs.generateChangelog,
-                        changelog_file,
-                        inputs.inputVersion,
-                        inputs.changelogHeaderRegex
-                    )
-                )
-                .then(newVersion =>
-                    _releaseFiles(
-                        inputs.skipReleaseFile,
-                        inputs.releaseDirectory,
-                        inputs.releaseFileName,
-                        outputs
-                    )
-                        .then(() => push(inputs.isTestMode))
-                        .then(() =>
-                            _changelog(
-                                changelog_file,
-                                newVersion,
-                                outputs,
-                                inputs.changelogHeaderRegex
-                            )
-                        )
-                        .then(changelog =>
-                            _createPr(
-                                outputs,
-                                changelog,
-                                inputs.createPrForBranchName,
-                                inputs.isTestMode
-                            )
-                        )
-                        .then(() => (outputs.version = newVersion))
-                        .then(() => setOutputs(outputs))
-                );
-        }
+    let inputs = await _getValidatedInputs(default_inputs, package_json_file);
+    if (inputs.isTestMode) core.warning("The test mode is enabled.");
+    const outputs: IActionOutputs = {
+        version: "",
+        changelog: "",
+        "release-filename": "",
+        "pull-request-url": "",
+    };
+    await installStandardVersionPackage();
+    let newVersion: string = await _standardVersionRelease(
+        inputs.gitEmail,
+        inputs.gitUsername,
+        inputs.generateChangelog,
+        changelog_file,
+        inputs.inputVersion,
+        inputs.changelogHeaderRegex
     );
+    await _releaseFiles(
+        inputs.skipReleaseFile,
+        inputs.releaseDirectory,
+        inputs.releaseFileName,
+        outputs
+    );
+    await push(inputs.isTestMode);
+    let changelog: string = await _changelog(
+        changelog_file,
+        newVersion,
+        outputs,
+        inputs.changelogHeaderRegex
+    );
+    await _createPr(
+        outputs,
+        changelog,
+        inputs.createPrForBranchName,
+        inputs.isTestMode
+    );
+    outputs.version = newVersion;
+    return setOutputs(outputs);
 }
 
-function _getValidatedInputs(
+async function _getValidatedInputs(
     default_inputs: IInputs,
     package_json_file: string
 ): Promise<IInputs> {
-    return getInputsOrDefaults(default_inputs).then(inputs =>
-        _validateInputs(inputs, package_json_file).then(() => inputs)
-    );
+    let inputs = await getInputsOrDefaults(default_inputs);
+    await _validateInputs(inputs, package_json_file);
+    return inputs;
 }
 
-function _standardVersionRelease(
+async function _standardVersionRelease(
     gitEmail: string,
     gitUsername: string,
     generateChangelog: GenerateChangelogOptions,
@@ -106,28 +94,25 @@ function _standardVersionRelease(
     inputVersion?: string,
     changelogHeaderRegex?: RegExp
 ): Promise<string> {
-    return setGitConfigs(gitEmail, gitUsername).then(() =>
-        standardVersionRelease(
-            generateChangelog,
-            changelog_file,
-            inputVersion,
-            changelogHeaderRegex
-        )
+    await setGitConfigs(gitEmail, gitUsername);
+    return await standardVersionRelease(
+        generateChangelog,
+        changelog_file,
+        inputVersion,
+        changelogHeaderRegex
     );
 }
 
-function _validateInputs(
+async function _validateInputs(
     inputs: IInputs,
     package_json_file: string
 ): Promise<void> {
-    return readVersionFromNpm(package_json_file).then(currentVersion =>
-        validateInputs(inputs, currentVersion).then(() =>
-            core.info("Inputs validated successfully.")
-        )
-    );
+    let currentVersion = await readVersionFromNpm(package_json_file);
+    await validateInputs(inputs, currentVersion);
+    return core.info("Inputs validated successfully.");
 }
 
-function _createPr(
+async function _createPr(
     outputs: IActionOutputs,
     body: string,
     createPrForBranchName?: string,
@@ -138,12 +123,15 @@ function _createPr(
         return Promise.resolve(null);
     }
 
-    return createPullRequest(createPrForBranchName, body, isTestMode).then(
-        prLink => (outputs["pull-request-url"] = prLink ?? "")
+    let prLink = await createPullRequest(
+        createPrForBranchName,
+        body,
+        isTestMode
     );
+    return (outputs["pull-request-url"] = prLink ?? "");
 }
 
-function _releaseFiles(
+async function _releaseFiles(
     skipReleaseFile: boolean,
     releaseDirectory: string,
     releaseFileName: string,
@@ -155,23 +143,24 @@ function _releaseFiles(
         );
         return Promise.resolve(null);
     }
-    return createReleaseFile(releaseDirectory, releaseFileName).then(
-        releaseFileName => (outputs["release-filename"] = releaseFileName ?? "")
+    let releaseFileName1 = await createReleaseFile(
+        releaseDirectory,
+        releaseFileName
     );
+    return (outputs["release-filename"] = releaseFileName1 ?? "");
 }
 
-function _changelog(
+async function _changelog(
     changelog_file: string,
     newVersion: string,
     outputs: IActionOutputs,
     changelogHeaderRegex?: RegExp
 ) {
-    return readChangelogSection(
+    let changelog = await readChangelogSection(
         changelog_file,
         newVersion,
         changelogHeaderRegex
-    ).then(changelog => {
-        outputs.changelog = changelog;
-        return changelog;
-    });
+    );
+    outputs.changelog = changelog;
+    return changelog;
 }

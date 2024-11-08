@@ -103,12 +103,13 @@ function getRegexOrDefault(
     return default_regex ? new RegExp(default_regex) : undefined;
 }
 
-export function validateInputs(
+export async function validateInputs(
     inputs: IInputs,
     currentVersion: string
 ): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
         if (!inputs.inputVersion) return resolve();
+
         return versionMustValid(
             inputs.inputVersion,
             currentVersion,
@@ -117,19 +118,15 @@ export function validateInputs(
         )
             .then(resolve)
             .catch(reject);
-    })
-        .then(() => {
-            if (!fs.existsSync(inputs.releaseDirectory)) {
-                return Promise.reject(
-                    new Error(
-                        `The directory '${inputs.releaseDirectory}' does not exists.`
-                    )
-                );
-            }
-            return Promise.resolve();
-        })
-        .then(() => {
-            if (!inputs.createPrForBranchName) return Promise.resolve();
-            return ensureBranchNameIsValid(inputs.createPrForBranchName);
-        });
+    });
+    if (!fs.existsSync(inputs.releaseDirectory)) {
+        await Promise.reject(
+            new Error(
+                `The directory '${inputs.releaseDirectory}' does not exists.`
+            )
+        );
+    }
+    await Promise.resolve();
+    if (!inputs.createPrForBranchName) return Promise.resolve();
+    return ensureBranchNameIsValid(inputs.createPrForBranchName);
 }

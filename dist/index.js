@@ -57,6 +57,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -69,7 +78,8 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 exports.DEFAULT_CHANGELOG_HEADER_REGEX = new RegExp("#+( )+((\\[[^\\]]+]\\([^)]+\\))|[^ ]+)( )+\\([^)]+\\)");
 exports.DEFAULT_CHANGELOG_VERSION_REGEX = new RegExp("(?:[[^]]*]|)s*([a-zA-Z0-9.]+)");
 function readChangelogSection(changelog_file, targetVersion, changelogHeaderRegex) {
-    return (0, utility_1.readFile)(changelog_file).then(content => {
+    return __awaiter(this, void 0, void 0, function* () {
+        const content = yield (0, utility_1.readFile)(changelog_file);
         const lines = content.split("\n");
         core.debug(`The ${changelog_file} has ${lines.length} lines.`);
         changelogHeaderRegex =
@@ -151,17 +161,19 @@ function isNeedGenerateChangelog(generateChangelogOption, changelog_file, inputV
 }
 exports.isNeedGenerateChangelog = isNeedGenerateChangelog;
 function autoDetectIsNeedGenerateChangelog(changelog_file, changelogHeaderRegex, changelogVersionRegex, inputVersion) {
-    return (0, version_1.detectNewVersion)(inputVersion).then(newVersion => getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex).then(newestChangelogVersion => {
+    return __awaiter(this, void 0, void 0, function* () {
+        const newVersion = yield (0, version_1.detectNewVersion)(inputVersion);
+        const newestChangelogVersion = yield getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex);
         if (!newestChangelogVersion)
             return true;
-        return (newVersion.toLowerCase() !==
-            newestChangelogVersion.toLowerCase());
-    }));
+        return newVersion.toLowerCase() !== newestChangelogVersion.toLowerCase();
+    });
 }
 function getNewestChangelogVersion(changelog_file, changelogHeaderRegex, changelogVersionRegex) {
-    if (!fs_1.default.existsSync(changelog_file))
-        return Promise.resolve(null);
-    return (0, utility_1.readFile)(changelog_file).then(content => {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!fs_1.default.existsSync(changelog_file))
+            return Promise.resolve(null);
+        const content = yield (0, utility_1.readFile)(changelog_file);
         const lines = content.split("\n");
         core.debug(`${changelog_file} was read. It has ${lines.length} lines.`);
         const latestHeaderLine = getChangelogHeaders(lines, 1, changelogHeaderRegex)[0].line;
@@ -202,24 +214,43 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isBranchNameExistsInRemote = exports.isBranchNameExistsInLocal = exports.ensureBranchNameIsValid = exports.push = exports.setGitConfigs = exports.getGitRootDir = exports.getCurrentBranchName = void 0;
 const utility_1 = __nccwpck_require__(8499);
 const core = __importStar(__nccwpck_require__(2186));
 function getCurrentBranchName() {
-    return (0, utility_1.execCommand)("git rev-parse --abbrev-ref HEAD", "Detect current branch name failed.").then(result => result.stdout.trim());
+    return __awaiter(this, void 0, void 0, function* () {
+        const result = yield (0, utility_1.execCommand)("git rev-parse --abbrev-ref HEAD", "Detect current branch name failed.");
+        return result.stdout.trim();
+    });
 }
 exports.getCurrentBranchName = getCurrentBranchName;
 function getGitRootDir() {
-    return (0, utility_1.execCommand)("git rev-parse --show-toplevel", "find git root directory failed.").then(output => output.stdout.trim());
+    return __awaiter(this, void 0, void 0, function* () {
+        const output = yield (0, utility_1.execCommand)("git rev-parse --show-toplevel", "find git root directory failed.");
+        return output.stdout.trim();
+    });
 }
 exports.getGitRootDir = getGitRootDir;
 function setGitConfigs(email, username) {
-    return (0, utility_1.execCommand)(`git config --global user.email "${email}"`).then(() => (0, utility_1.execCommand)(`git config --global user.name "${username}"`));
+    return __awaiter(this, void 0, void 0, function* () {
+        yield (0, utility_1.execCommand)(`git config --global user.email "${email}"`);
+        return yield (0, utility_1.execCommand)(`git config --global user.name "${username}"`);
+    });
 }
 exports.setGitConfigs = setGitConfigs;
 function push(testMode = false) {
-    return getCurrentBranchName().then(currentBranchName => {
+    return __awaiter(this, void 0, void 0, function* () {
+        const currentBranchName = yield getCurrentBranchName();
         const command = `git push --follow-tags origin ${currentBranchName}`;
         if (testMode) {
             core.info(`Test mode is enabled so skipping push command and return fake output. Command: ${command}`);
@@ -234,19 +265,20 @@ function push(testMode = false) {
 }
 exports.push = push;
 function ensureBranchNameIsValid(branchName) {
-    return isBranchNameExistsInLocal(branchName).then(isExistInLocal => {
+    return __awaiter(this, void 0, void 0, function* () {
+        const isExistInLocal = yield isBranchNameExistsInLocal(branchName);
         if (isExistInLocal)
             return;
-        return isBranchNameExistsInRemote(branchName).then(isExistInRemote => {
-            if (isExistInRemote)
-                return;
-            throw new Error(`The branch '${branchName}' is not valid.`);
-        });
+        const isExistInRemote = yield isBranchNameExistsInRemote(branchName);
+        if (isExistInRemote)
+            return;
+        throw new Error(`The branch '${branchName}' is not valid.`);
     });
 }
 exports.ensureBranchNameIsValid = ensureBranchNameIsValid;
 function isBranchNameExistsInLocal(branchName) {
-    return (0, utility_1.execCommand)(`git show-ref --verify refs/heads/${branchName}`, `Failed to check is branch '${branchName}' exists in local.`, [], { ignoreReturnCode: true }).then(output => {
+    return __awaiter(this, void 0, void 0, function* () {
+        const output = yield (0, utility_1.execCommand)(`git show-ref --verify refs/heads/${branchName}`, `Failed to check is branch '${branchName}' exists in local.`, [], { ignoreReturnCode: true });
         if (output.exitCode === 0)
             return true;
         const message = `${output.stderr}\n${output.stdout}`;
@@ -257,7 +289,8 @@ function isBranchNameExistsInLocal(branchName) {
 }
 exports.isBranchNameExistsInLocal = isBranchNameExistsInLocal;
 function isBranchNameExistsInRemote(branchName) {
-    return (0, utility_1.execCommand)(`git ls-remote --quiet --heads --exit-code origin ${branchName}`, `Failed to check is branch '${branchName}' exists in remote.`, [], { ignoreReturnCode: true }).then(output => {
+    return __awaiter(this, void 0, void 0, function* () {
+        const output = yield (0, utility_1.execCommand)(`git ls-remote --quiet --heads --exit-code origin ${branchName}`, `Failed to check is branch '${branchName}' exists in remote.`, [], { ignoreReturnCode: true });
         if (output.exitCode === 0)
             return true;
         if (output.exitCode === 2)
@@ -426,6 +459,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -444,11 +486,16 @@ function execBashCommand(command, errorMessage, args, options) {
 }
 exports.execBashCommand = execBashCommand;
 function execCommand(command, errorMessage, args, options) {
-    core.debug(`Execute command: ${command}`);
-    return exec.getExecOutput(command, args, options).catch(error => {
-        const title = errorMessage || `Execute '${command}' failed.`;
-        const message = error instanceof Error ? error.message : error.toString();
-        throw new Error(`${title}\n${message}`);
+    return __awaiter(this, void 0, void 0, function* () {
+        core.debug(`Execute command: ${command}`);
+        try {
+            return yield exec.getExecOutput(command, args, options);
+        }
+        catch (error) {
+            const title = errorMessage || `Execute '${command}' failed.`;
+            const message = error instanceof Error ? error.message : error.toString();
+            throw new Error(`${title}\n${message}`);
+        }
     });
 }
 exports.execCommand = execCommand;
@@ -463,11 +510,13 @@ function readFile(fileName) {
 }
 exports.readFile = readFile;
 function createReleaseFile(releaseDir, releaseFilename) {
-    if (!releaseFilename.endsWith(".zip"))
-        releaseFilename += ".zip";
-    return (0, git_1.getGitRootDir)().then(rootDir => {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!releaseFilename.endsWith(".zip"))
+            releaseFilename += ".zip";
+        const rootDir = yield (0, git_1.getGitRootDir)();
         const outputPath = path_1.default.join(rootDir, releaseFilename);
-        return execBashCommand(`(cd ${releaseDir}; zip -r ${outputPath} .)`, `Can not create release file from '${releaseDir}' to '${outputPath}'.`).then(() => releaseFilename);
+        yield execBashCommand(`(cd ${releaseDir}; zip -r ${outputPath} .)`, `Can not create release file from '${releaseDir}' to '${outputPath}'.`);
+        return releaseFilename;
     });
 }
 exports.createReleaseFile = createReleaseFile;
@@ -528,6 +577,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -597,10 +655,13 @@ function compareVersions(version1, version2) {
 }
 exports.compareVersions = compareVersions;
 function detectNewVersion(inputVersion) {
-    if (inputVersion)
-        return Promise.resolve(inputVersion);
-    const releaseCommand = (0, standard_version_1.getReleaseCommand)(true, inputVersion);
-    return (0, standard_version_1.runDry)(releaseCommand).then(parseNewVersionFromText);
+    return __awaiter(this, void 0, void 0, function* () {
+        if (inputVersion)
+            return Promise.resolve(inputVersion);
+        const releaseCommand = (0, standard_version_1.getReleaseCommand)(true, inputVersion);
+        const text = yield (0, standard_version_1.runDry)(releaseCommand);
+        return parseNewVersionFromText(text);
+    });
 }
 exports.detectNewVersion = detectNewVersion;
 function parseNewVersionFromText(text) {
@@ -620,6 +681,15 @@ exports.parseNewVersionFromText = parseNewVersionFromText;
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -666,20 +736,18 @@ function getRegexOrDefault(name, default_regex = undefined) {
     return default_regex ? new RegExp(default_regex) : undefined;
 }
 function validateInputs(inputs, currentVersion) {
-    return new Promise((resolve, reject) => {
-        if (!inputs.inputVersion)
-            return resolve();
-        return (0, version_1.versionMustValid)(inputs.inputVersion, currentVersion, inputs.ignoreSameVersionError, inputs.ignoreLessVersionError)
-            .then(resolve)
-            .catch(reject);
-    })
-        .then(() => {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield new Promise((resolve, reject) => {
+            if (!inputs.inputVersion)
+                return resolve();
+            return (0, version_1.versionMustValid)(inputs.inputVersion, currentVersion, inputs.ignoreSameVersionError, inputs.ignoreLessVersionError)
+                .then(resolve)
+                .catch(reject);
+        });
         if (!fs_1.default.existsSync(inputs.releaseDirectory)) {
-            return Promise.reject(new Error(`The directory '${inputs.releaseDirectory}' does not exists.`));
+            yield Promise.reject(new Error(`The directory '${inputs.releaseDirectory}' does not exists.`));
         }
-        return Promise.resolve();
-    })
-        .then(() => {
+        yield Promise.resolve();
         if (!inputs.createPrForBranchName)
             return Promise.resolve();
         return (0, git_1.ensureBranchNameIsValid)(inputs.createPrForBranchName);
@@ -774,6 +842,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const inputs_1 = __nccwpck_require__(6180);
@@ -792,7 +869,8 @@ const run = (default_inputs, package_json_path, changelog_file) => mainProcess(d
 });
 exports["default"] = run;
 function mainProcess(default_inputs, package_json_file, changelog_file) {
-    return _getValidatedInputs(default_inputs, package_json_file).then(inputs => {
+    return __awaiter(this, void 0, void 0, function* () {
+        let inputs = yield _getValidatedInputs(default_inputs, package_json_file);
         if (inputs.isTestMode)
             core.warning("The test mode is enabled.");
         const outputs = {
@@ -801,41 +879,59 @@ function mainProcess(default_inputs, package_json_file, changelog_file) {
             "release-filename": "",
             "pull-request-url": "",
         };
-        return (0, standard_version_1.installStandardVersionPackage)()
-            .then(() => _standardVersionRelease(inputs.gitEmail, inputs.gitUsername, inputs.generateChangelog, changelog_file, inputs.inputVersion, inputs.changelogHeaderRegex))
-            .then(newVersion => _releaseFiles(inputs.skipReleaseFile, inputs.releaseDirectory, inputs.releaseFileName, outputs)
-            .then(() => (0, git_1.push)(inputs.isTestMode))
-            .then(() => _changelog(changelog_file, newVersion, outputs, inputs.changelogHeaderRegex))
-            .then(changelog => _createPr(outputs, changelog, inputs.createPrForBranchName, inputs.isTestMode))
-            .then(() => (outputs.version = newVersion))
-            .then(() => (0, outputs_1.setOutputs)(outputs)));
+        yield (0, standard_version_1.installStandardVersionPackage)();
+        let newVersion = yield _standardVersionRelease(inputs.gitEmail, inputs.gitUsername, inputs.generateChangelog, changelog_file, inputs.inputVersion, inputs.changelogHeaderRegex);
+        yield _releaseFiles(inputs.skipReleaseFile, inputs.releaseDirectory, inputs.releaseFileName, outputs);
+        yield (0, git_1.push)(inputs.isTestMode);
+        let changelog = yield _changelog(changelog_file, newVersion, outputs, inputs.changelogHeaderRegex);
+        yield _createPr(outputs, changelog, inputs.createPrForBranchName, inputs.isTestMode);
+        outputs.version = newVersion;
+        return (0, outputs_1.setOutputs)(outputs);
     });
 }
 function _getValidatedInputs(default_inputs, package_json_file) {
-    return (0, inputs_1.getInputsOrDefaults)(default_inputs).then(inputs => _validateInputs(inputs, package_json_file).then(() => inputs));
+    return __awaiter(this, void 0, void 0, function* () {
+        let inputs = yield (0, inputs_1.getInputsOrDefaults)(default_inputs);
+        yield _validateInputs(inputs, package_json_file);
+        return inputs;
+    });
 }
 function _standardVersionRelease(gitEmail, gitUsername, generateChangelog, changelog_file, inputVersion, changelogHeaderRegex) {
-    return (0, git_1.setGitConfigs)(gitEmail, gitUsername).then(() => (0, standard_version_1.standardVersionRelease)(generateChangelog, changelog_file, inputVersion, changelogHeaderRegex));
+    return __awaiter(this, void 0, void 0, function* () {
+        yield (0, git_1.setGitConfigs)(gitEmail, gitUsername);
+        return yield (0, standard_version_1.standardVersionRelease)(generateChangelog, changelog_file, inputVersion, changelogHeaderRegex);
+    });
 }
 function _validateInputs(inputs, package_json_file) {
-    return (0, version_1.readVersionFromNpm)(package_json_file).then(currentVersion => (0, inputs_1.validateInputs)(inputs, currentVersion).then(() => core.info("Inputs validated successfully.")));
+    return __awaiter(this, void 0, void 0, function* () {
+        let currentVersion = yield (0, version_1.readVersionFromNpm)(package_json_file);
+        yield (0, inputs_1.validateInputs)(inputs, currentVersion);
+        return core.info("Inputs validated successfully.");
+    });
 }
 function _createPr(outputs, body, createPrForBranchName, isTestMode = false) {
-    if (!createPrForBranchName) {
-        core.info("No branch name provided so skipping pull request creation.");
-        return Promise.resolve(null);
-    }
-    return (0, prHelper_1.createPullRequest)(createPrForBranchName, body, isTestMode).then(prLink => (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : ""));
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!createPrForBranchName) {
+            core.info("No branch name provided so skipping pull request creation.");
+            return Promise.resolve(null);
+        }
+        let prLink = yield (0, prHelper_1.createPullRequest)(createPrForBranchName, body, isTestMode);
+        return (outputs["pull-request-url"] = prLink !== null && prLink !== void 0 ? prLink : "");
+    });
 }
 function _releaseFiles(skipReleaseFile, releaseDirectory, releaseFileName, outputs) {
-    if (skipReleaseFile) {
-        core.info("Skip release file is requested so skip create release file.");
-        return Promise.resolve(null);
-    }
-    return (0, utility_1.createReleaseFile)(releaseDirectory, releaseFileName).then(releaseFileName => (outputs["release-filename"] = releaseFileName !== null && releaseFileName !== void 0 ? releaseFileName : ""));
+    return __awaiter(this, void 0, void 0, function* () {
+        if (skipReleaseFile) {
+            core.info("Skip release file is requested so skip create release file.");
+            return Promise.resolve(null);
+        }
+        let releaseFileName1 = yield (0, utility_1.createReleaseFile)(releaseDirectory, releaseFileName);
+        return (outputs["release-filename"] = releaseFileName1 !== null && releaseFileName1 !== void 0 ? releaseFileName1 : "");
+    });
 }
 function _changelog(changelog_file, newVersion, outputs, changelogHeaderRegex) {
-    return (0, changelog_1.readChangelogSection)(changelog_file, newVersion, changelogHeaderRegex).then(changelog => {
+    return __awaiter(this, void 0, void 0, function* () {
+        let changelog = yield (0, changelog_1.readChangelogSection)(changelog_file, newVersion, changelogHeaderRegex);
         outputs.changelog = changelog;
         return changelog;
     });
